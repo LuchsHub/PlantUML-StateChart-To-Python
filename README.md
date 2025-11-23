@@ -9,9 +9,11 @@ Code Generation from UML State Chart Diagrams (wichtig, das Paper aus der VL)
 - Nutzt eine Erweiterung des State-Patterns (Komposition/Delegation) und definiert explizite Mapping-Regeln von Statechart-Elementen zu Code-Templates.​
 - UML zu Java
 
-?????
-- https://community.wvu.edu/~hhammar/rts/adv%20rts/
-- keine Ahnung was das ist...
+Code Generation from UML Statecharts
+- https://community.wvu.edu/~hhammar/rts/adv%20rts/statecharts%20patterns%20papers%20and%20%20examples/statechart%20pattern%20and%20example%20niaz_sea2003.pdf
+- objektorientiert: 1 State = 1 Klasse
+- Ebenso Erweiterung des State-Patterns um Komposition und Delegation
+- parallele Zustände, Forks/Joins, History-Zustände
 
 Automatic Code Generation From UML State Chart Diagrams
 - https://ieeexplore.ieee.org/document/8600324
