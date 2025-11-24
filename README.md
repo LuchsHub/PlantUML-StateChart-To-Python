@@ -104,3 +104,91 @@ State Machine Code Generation in Python (Gnosis Whitepaper)
     - Python AST Module - Für das Verständnis von AST-Strukturen in Python
     - Abstract Syntax Networks for Code Generation – Theoretischer Hintergrund zu AST-basierter Code-Generierung (https://arxiv.org/pdf/1704.07535)
 - "LLMs as Code Generators for Model-Driven Development" – Zukunfts-relevant: Einsatz von ChatGPT/LLMs für MDD-Code-Generierung (https://www.scitepress.org/Papers/2025/135803/135803.pdf)
+
+
+# UML Statechart Features (nach Komplexität)
+
+## Basis
+
+- **Einfache Zustände (simple states)**
+  - Einzelner Zustand ohne interne Struktur
+  - Optional mit `entry` / `do` / `exit` Aktionen
+
+- **Transitionen**
+  - Kanten mit Quelle/Ziel
+  - Optional mit Ereignis, Guard `[cond]` und Aktion/Effekt
+
+- **Ereignisse (Events)**
+  - z.B. Signal-, Call-, Zeit- oder Change-Events
+
+- **Initial- und Endzustand**
+  - Start-Pseudostate (gefüllter Punkt)
+  - Finaler Zustand (Bullseye)
+
+
+## Mittlere Komplexität
+
+- **Interne Aktionen eines Zustands**
+  - `entry /`, `do /`, `exit /`
+  - Interne Transitionen ohne Zustandswechsel
+
+- **Guards (Bedingungen)**
+  - Boolesche Ausdrücke auf Transitionen
+
+- **Aktionen auf Transitionen**
+  - Code / Operationen, die beim Übergang ausgeführt werden
+
+- **Selbsttransitionen / interne Transitionen**
+  - Übergang zurück in denselben Zustand (mit oder ohne Re-Entry)
+
+- **Zusammengesetzte Zustände (Composite States, einfach)**
+  - Zustand mit eigener interner Sub-Statemachine (ohne Parallelität)
+
+
+## Fortgeschritten
+
+- **Mehrstufige Hierarchie**
+  - Zustände innerhalb von Zuständen über mehrere Ebenen
+
+- **Regionen in zusammengesetzten Zuständen**
+  - Strukturierung der Sub-States in logische Regionen
+
+- **Submaschinenzustände (Submachine States)**
+  - Wiederverwendung einer separaten State Machine als „Inline“-Zustand
+
+- **Deferierte Ereignisse (Deferred Events)**
+  - Ereignisse, die im aktuellen Zustand geparkt und später verarbeitet werden
+
+- **Zeitereignisse (Time Events, `after` / `at`)**
+  - Zeit- oder Timeout-basierte Trigger
+
+
+## Pseudostates (fortgeschritten bis komplex)
+
+- **Choice / Junction**
+  - Verzweigung/Zusammenführung mit mehreren Guards
+
+- **Fork / Join**
+  - Aufspalten und Synchronisieren paralleler Pfade
+
+- **Terminate-Pseudostate**
+  - Sofortiges Beenden der gesamten State Machine
+
+
+## Höchste Komplexität
+
+- **Nebenläufige Regionen (Orthogonal Regions)**
+  - Mehrere gleichzeitig aktive Regionen in einem Composite State
+
+- **History-Zustände (Shallow / Deep History)**
+  - Wiedereinstieg in den zuletzt aktiven Unterzustand
+  - Shallow: nur eine Ebene; Deep: rekursiv über alle Ebenen
+
+- **Entry-/Exit-Points (Entry/Exit Pseudostates)**
+  - Spezielle Ein/Austrittspunkte für Composite- oder Submachine-States
+
+- **Broadcast-Events / Ereignisverteilung zwischen Regionen**
+  - Events beeinflussen mehrere Regionen/Teilautomaten gleichzeitig
+
+- **Kombination von Hierarchie und Parallelität**
+  - Verschachtelte Composite-States mit eigenen parallelen Regionen und History
