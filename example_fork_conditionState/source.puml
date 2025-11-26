@@ -13,11 +13,12 @@ state Preparation {
 
   state fork1 <<fork>>
   Grind -> fork1
-  fork1 -> BrewEspresso
+  fork1 -> PreInfusion
+  PreInfusion -> Extraction
   fork1 -> FrothMilk
 
   state join1 <<join>>
-  BrewEspresso -> join1
+  Extraction -> join1
   FrothMilk -> join1
 }
 
