@@ -61,26 +61,31 @@ Design and validation of a C++ code generator from Abstract State Machines speci
 
 ## Github Projekte
 
-StateBuilder (GitHub)
-- https://github.com/stateforge/StateBuilder​
-- State machine code generator für C++, C#, Java und andere Sprachen; liest State-Machine-Beschreibungen (XML) und erzeugt ausführbaren Code.​
-- Relevanz: Referenzimplementierung für Generatorarchitektur, Konfigurationsformate und generierten Code-Stil.
+Github: StateSmith
+- https://github.com/StateSmith/StateSmith
+- Cross-Platform State-Machine-Generator für viele Zielsprachen (C, C++, C#, Java, Python, JS/TS etc.) mit Input aus draw.io, PlantUML, yEd.
+- Relevanz: zeigt, wie man PlantUML-Input verallgemeinert und Multi-Sprachen-Codegeneratoren strukturiert; auch als technische Benchmark interessant
+- direkter Konkurrent!!!
+
+State Machine Code Generation in Python (Gnosis Whitepaper)
+- http://www.breti.org/resources/Grass-Roots-Code-Generation/State_Machine_Code_Generation_in_Python_1.0_gnosis.pdf​
+- Beschreibt, wie man aus Modellbeschreibungen (z.B. XML) State-Machine-Code generiert, mit Fokus auf Python-Implementierung und Code-Struktur.​
+- Relevanz: direkt Python-bezogen; liefert Patterns für die Generierung und Organisation des Python-State-Machine-Codes.
 
 PlantUML Statecharts (State Machine) Translator (GitHub)
 - https://github.com/Lecrapouille/PlantUMLStatecharts​
 - Übersetzt PlantUML-Statecharts in C++-Code (inkl. Unterstützung für hierarchische und parallele Zustände).​
 - Relevanz: direktester technischer Verwandter
 
+StateBuilder (GitHub)
+- https://github.com/stateforge/StateBuilder​
+- State machine code generator für C++, C#, Java und andere Sprachen; liest State-Machine-Beschreibungen (XML) und erzeugt ausführbaren Code.​
+- Relevanz: Referenzimplementierung für Generatorarchitektur, Konfigurationsformate und generierten Code-Stil.
+
 Python Code Generation for Multi State Machines (itemis CREATE Beispiel)
 - https://www.itemis.com/en/products/itemis-create/documentation/examples/itemis-create-examples-codegen-multism-python​
 - Demonstriert Python-Code-Generierung für mehrere interagierende State Machines mit itemis CREATE.​
 - Relevanz: konkrete Python-Zielsyntax, Struktur von generiertem State-Machine-Code und Best Practices für Multi-Statemachine-Szenarien.
-
-Github: StateSmith
-- https://github.com/StateSmith/StateSmith
-- Cross-Platform State-Machine-Generator für viele Zielsprachen (C, C++, C#, Java, Python, JS/TS etc.) mit Input aus draw.io, PlantUML, yEd.
-- Relevanz: zeigt, wie man PlantUML-Input verallgemeinert und Multi-Sprachen-Codegeneratoren strukturiert; auch als technische Benchmark interessant
-- direkter Konkurrent!!!
 
 Python StateMachine (Python Bibliothek)
 - https://pypi.org/project/python-statemachine/
@@ -88,11 +93,6 @@ Python StateMachine (Python Bibliothek)
 - Nicht direkt ein Generator
 - Diagramm-Generierung aus Code (Umkehrung des Ansatzes, aber relevant für Patterns)
 
-
-State Machine Code Generation in Python (Gnosis Whitepaper)
-- http://www.breti.org/resources/Grass-Roots-Code-Generation/State_Machine_Code_Generation_in_Python_1.0_gnosis.pdf​
-- Beschreibt, wie man aus Modellbeschreibungen (z.B. XML) State-Machine-Code generiert, mit Fokus auf Python-Implementierung und Code-Struktur.​
-- Relevanz: direkt Python-bezogen; liefert Patterns für die Generierung und Organisation des Python-State-Machine-Codes.
 
 
 # Weitere Ansätze
