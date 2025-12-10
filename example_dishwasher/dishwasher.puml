@@ -22,7 +22,8 @@ state Tür_geschlossen {
   }
 
   state Trocknen {
-    Trocknen: Entry: Gebläse starten    Trocknen: Exit: Wasser abpumpen
+    Trocknen: Entry: Gebläse starten
+    Trocknen: Exit: Wasser abpumpen
   }
 }
 
