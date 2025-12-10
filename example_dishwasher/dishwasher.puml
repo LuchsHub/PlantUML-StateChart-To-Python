@@ -1,0 +1,30 @@
+@startuml
+[*] --> Tür_offen
+state Tür_offen
+Tür_offen --> Tür_geschlossen: Event: Tür wird geschlossen
+
+state Tür_geschlossen {
+  Tür_geschlossen: Exit: Tür entsperren
+
+  [*] --> Vorspülen: Event: Spülvorgang gestartet
+
+  state Vorspülen {
+    Vorspülen: Entry: Tür verriegeln
+    Vorspülen: Exit: Wasser abpumpen
+    Vorspülen --> Hauptreinigung: Time Event: nach 10min
+  }
+
+  state Hauptreinigung {
+    Hauptreinigung: Entry: Heizung starten
+    Hauptreinigung: Exit: Wasser abpumpen
+    Hauptreinigung --> Hauptreinigung: Event: Geschirrspültab freigegeben
+    Hauptreinigung --> Trocknen: Time Event: nach 60min
+  }
+
+  state Trocknen {
+    Trocknen: Entry: Gebläse starten    Trocknen: Exit: Wasser abpumpen
+  }
+}
+
+Tür_geschlossen --> [*]: Spülvorgang beendet
+@enduml
