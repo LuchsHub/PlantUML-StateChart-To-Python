@@ -266,8 +266,8 @@ State_A --> State_B: Transition [x > 100]
 state State_A
 
 [*] --> State_A
-State_A: entry: do_something()
-State_A: exit: do_something_else()
+State_A: entry: do_something
+State_A: exit: do_something_else
 @enduml
 ```
 <img src="./static/entry_exit_plantuml.png" alt="Entry + Exit PlantUML example" width="400"/>
