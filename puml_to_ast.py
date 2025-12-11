@@ -31,7 +31,6 @@ class Parser():
                     
                     self.tree.create_node(new_node, new_node, parent=parent)
                     self.tree.create_node(f"Transitions_in_{new_node}", f"transitions_in_{new_node}", parent=new_node)
-                    self.tree.show()
                     self.explore_inner(line, data, i, new_node)
                     
                 
@@ -53,7 +52,6 @@ class Parser():
                     g_id = random.random()
                     self.tree.create_node("Goal_state", g_id, t_id)
                     self.tree.create_node(goal_state, random.random(), g_id)
-                    self.tree.show()
 
                 if data[line][i+1] == "Entry:":      #entry
                     state = data[line][i].split(":")[0].lower()
@@ -81,7 +79,7 @@ class Parser():
                 # iterate over following lines
                 if "}" in data[lline]: self.closed += 1
                 if "{" in data[lline]: self.opened += 1
-            #print(lline)
+            
             self.opened, self.closed = (1, 0)
 
             self.find_state(data[line:lline], i+2, parent.lower())
