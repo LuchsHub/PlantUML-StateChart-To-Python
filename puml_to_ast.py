@@ -1,13 +1,10 @@
 from treelib import Tree
-import click
+from treelib.exceptions import NodeIDAbsentError
+import random
 
-
-# @click.command()
-# @click.option("--file", prompt="Path to your file", 
-#               help="Full or relative path to your file.\nDon't forget starting a venv and installing the requirements")
 
 class Parser():
-    def __init__(self, file="example_dishwasher/dishwasher.puml"):
+    def __init__(self, file="example_fork_conditionState/source.puml"):
         self.f = open(file)
         self.data = [x.split(" ") for x in self.f.read().split("\n")]
         self.parent = file.split("/")[-1].split(".")[0]
@@ -18,24 +15,46 @@ class Parser():
 
     def puml_to_ast(self):
         self.tree.create_node(self.parent, self.parent_root)
+        self.tree.create_node("Transitions", f"transitions", parent=self.parent_root)
 
         self.find_state(self.data, 0, self.parent_root)
 
         self.tree.show()
 
     def find_state(self, data, i, parent):
-        # print(data)
-        self.tree.show()
-        print("\n")
+
         for line in range(len(data)):
             if len(data[line]) >= i+2:
+
                 if data[line][i] == "state":
-                    p = data[line][i+1]
-                    self.tree.create_node(p, p.lower(), parent=parent)
-                    self.explore_inner(line, data, i, p)
+                    new_node = data[line][i+1].lower()
+                    
+                    self.tree.create_node(new_node, new_node, parent=parent)
+                    self.tree.create_node(f"Transitions_in_{new_node}", f"transitions_in_{new_node}", parent=new_node)
+                    self.tree.show()
+                    self.explore_inner(line, data, i, new_node)
+                    
                 
-                if data[line][i+1] == "-->":      #transition
-                    pass
+                if data[line][i+1] == "-->" or data[line][i+1] == "->" :      #transition
+                    source_state = data[line][i].split(":")[0].lower()
+                    goal_state = data[line][i+2].split(":")[0].lower()
+                    t_id = random.random()
+
+                    try:
+                        self.tree.create_node("+", t_id, f"transitions_in_{parent}")
+                    except NodeIDAbsentError as msg:
+                        print(msg)
+                        self.tree.create_node("+", t_id, f"transitions")
+
+                    s_id = random.random()
+                    self.tree.create_node("Source_state", s_id, t_id)
+                    self.tree.create_node(source_state, random.random(), s_id)
+
+                    g_id = random.random()
+                    self.tree.create_node("Goal_state", g_id, t_id)
+                    self.tree.create_node(goal_state, random.random(), g_id)
+                    self.tree.show()
+
                 if data[line][i+1] == "Entry:":      #entry
                     state = data[line][i].split(":")[0].lower()
                     entry_name = f"entry_{state}"
@@ -54,7 +73,7 @@ class Parser():
                     self.tree.create_node("Exit", exit_name, state)
                     self.tree.create_node(exit_clear, f"{exit_name}_{exit_underline}", exit_name)
 
-    def explore_inner(self, line, data, i, p):
+    def explore_inner(self, line, data, i, parent):
         lline = line
         if "{" in data[lline]:
             while self.opened!=self.closed:
@@ -65,7 +84,7 @@ class Parser():
             #print(lline)
             self.opened, self.closed = (1, 0)
 
-            self.find_state(data[line:lline], i+2, p.lower())
+            self.find_state(data[line:lline], i+2, parent.lower())
 
                 
 if __name__=="__main__":
