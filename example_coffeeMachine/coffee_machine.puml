@@ -1,6 +1,10 @@
 @startuml
 hide empty description
 
+state Aus
+state An
+state Pause
+
 [*] --> Aus
 
 Aus: Exit: piepen
@@ -22,5 +26,4 @@ state An {
 
 An --> Pause : stop
 Pause --> An[H] : fortfahren
-
 @enduml
