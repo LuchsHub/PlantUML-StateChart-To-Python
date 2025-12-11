@@ -1,0 +1,26 @@
+@startuml
+hide empty description
+
+[*] --> Aus
+
+Aus: Exit: piepen
+
+Aus --> An : anschalten
+
+state An {
+  An: Entry: wasserReinigen
+
+  [*] --> Leerlauf
+  Leerlauf --> Leerlauf : wasserAuffüllen
+
+  Leerlauf --> Zubereitung : kaffeeMachen [wasser > 20]
+
+  Zubereitung --> Ausgabe
+
+  Ausgabe --> Leerlauf : kaffeeEntnehmen
+}
+
+An --> Pause : stop
+Pause --> An[H] : fortfahren
+
+@enduml
