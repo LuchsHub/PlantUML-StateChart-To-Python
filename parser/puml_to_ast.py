@@ -4,7 +4,7 @@ import random
 
 
 class Parser():
-    def __init__(self, file="example_fork_conditionState/source.puml"):
+    def __init__(self, file="example_coffeeMachine/coffee_machine.puml"):
         self.f = open(file)
         self.data = [x.split(" ") for x in self.f.read().split("\n")]
         self.parent = file.split("/")[-1].split(".")[0]
