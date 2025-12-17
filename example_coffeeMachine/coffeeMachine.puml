@@ -2,6 +2,7 @@
 hide empty description
 
 state Aus
+state An
 state Pause
 
 [*] --> Aus

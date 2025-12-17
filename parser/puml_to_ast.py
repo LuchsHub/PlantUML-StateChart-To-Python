@@ -4,7 +4,7 @@ import random
 
 
 class Parser():
-    def __init__(self, file="example_coffeeMachine/coffee_machine.puml", warnings=True):
+    def __init__(self, file="example_coffeeMachine/coffeeMachine.puml", warnings=True):
         self.f = open(file)
         self.data = [x.split(" ") for x in self.f.read().split("\n")]
         self.parent = file.split("/")[-1].split(".")[0]
@@ -34,15 +34,16 @@ class Parser():
                     
                 # transition
                 if data[line][i+1] == "-->" or data[line][i+1] == "->" :
-                    self.create_transition(data[line], i, parent)
+                    self.tree.show()
+                    self.create_transition(data[line], i, "_".join(parent.split("_")[:1]))
 
                 # entry
                 if data[line][i+1] == "Entry:":
-                    self.create_entry(data[line], i)
+                    self.create_entry(data[line], i, parent.split("_")[-1])
 
                 # exit
                 if data[line][i+1] == "Exit:":
-                    self.create_exit(data[line], i, parent)
+                    self.create_exit(data[line], i, parent.split("_")[-1])
 
 
     def create_transition(self, line, i, parent):
@@ -79,13 +80,12 @@ class Parser():
     def create_state(self, data, line, i):
         new_node = data[line][i+1].lower()
         new_node_id = f"{new_node}_in_{self.parent_root}"
-        self.tree.show()
-        print(new_node_id)
         
-        self.tree.create_node(new_node, new_node_id, parent=f"states_in_{self.parent_root}")   # create state node
+        if self.tree.get_node(f"{new_node}_in_{self.parent_root}") is None:
+            self.tree.create_node(new_node, new_node_id, parent=f"states_in_{self.parent_root}")   # create state node
 
-        self.tree.create_node(f"Transitions_in_{new_node}", f"transitions_in_{new_node}", parent=new_node_id)  # create Transitions leaf
-        self.tree.create_node(f"States_in_{new_node}", f"states_in_{new_node}", parent=new_node_id)  # create States leaf
+            self.tree.create_node(f"Transitions_in_{new_node}", f"transitions_in_{new_node}", parent=new_node_id)  # create Transitions leaf
+            self.tree.create_node(f"States_in_{new_node}", f"states_in_{new_node}", parent=new_node_id)  # create States leaf
         self.explore_inner(line, data, i, new_node_id)
 
 
@@ -99,13 +99,13 @@ class Parser():
         self.tree.create_node(exit_clear, f"{exit_name}_{exit_underline}", exit_name)
 
 
-    def create_entry(self, line, i):
+    def create_entry(self, line, i, parent):
         state = line[i].split(":")[0].lower()
         entry_name = f"entry_{state}"
         entry_clear = " ".join(line[i+2:])
         entry_underline = "_".join(line[i+2:]).lower()
 
-        self.tree.create_node("Entry", entry_name, state)
+        self.tree.create_node("Entry", entry_name, f"{state}_in_{parent}")
         self.tree.create_node(entry_clear, f"{entry_name}_{entry_underline}", entry_name)
 
 
