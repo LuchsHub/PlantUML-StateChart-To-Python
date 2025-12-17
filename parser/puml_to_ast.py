@@ -14,11 +14,14 @@ class Parser():
         self.opened = 1
         self.closed = 0
 
+
     def puml_to_ast(self):
         self.tree.create_node(self.parent, self.parent_root)
-        self.tree.create_node("Transitions", f"transitions", parent=self.parent_root)
+        self.tree.create_node("Transitions", f"transitions_in_{self.parent_root}", parent=self.parent_root)
+        self.tree.create_node("States", f"states_in_{self.parent_root}", parent=self.parent_root)
 
         self.find_state(self.data, 0, self.parent_root)
+
 
     def find_state(self, data, i, parent):
 
@@ -26,52 +29,71 @@ class Parser():
             if len(data[line]) >= i+2:
 
                 if data[line][i] == "state":
-                    new_node = data[line][i+1].lower()
-                    
-                    self.tree.create_node(new_node, new_node, parent=parent)
-                    self.tree.create_node(f"Transitions_in_{new_node}", f"transitions_in_{new_node}", parent=new_node)
-                    self.explore_inner(line, data, i, new_node)
+                    self.create_state(data, line, i)
                     
                 #transition
                 if data[line][i+1] == "-->" or data[line][i+1] == "->" :
-                    source_state = data[line][i].split(":")[0].lower()
-                    goal_state = data[line][i+2].split(":")[0].lower()
-                    t_id = random.random()
-
-                    try:
-                        self.tree.create_node("+", t_id, f"transitions_in_{parent}")
-                    except NodeIDAbsentError as msg:
-                        if self.warnings:
-                            print(msg)
-                        self.tree.create_node("+", t_id, f"transitions")
-
-                    s_id = random.random()
-                    self.tree.create_node("Source_state", s_id, t_id)
-                    self.tree.create_node(source_state, random.random(), s_id)
-
-                    g_id = random.random()
-                    self.tree.create_node("Goal_state", g_id, t_id)
-                    self.tree.create_node(goal_state, random.random(), g_id)
+                    self.create_transition(data[line], i, parent)
 
                 #entry
                 if data[line][i+1] == "Entry:":
-                    state = data[line][i].split(":")[0].lower()
-                    entry_name = f"entry_{state}"
-                    entry_clear = " ".join(data[line][i+2:])
-                    entry_underline = "_".join(data[line][i+2:]).lower()
-
-                    self.tree.create_node("Entry", entry_name, state)
-                    self.tree.create_node(entry_clear, f"{entry_name}_{entry_underline}", entry_name)
+                    self.create_entry(data[line], i)
 
                 #exit
                 if data[line][i+1] == "Exit:":
-                    state = data[line][i].split(":")[0].lower()
-                    exit_name = f"exit_{state}"
-                    exit_clear = " ".join(data[line][i+2:])
-                    exit_underline = "_".join(data[line][i+2:]).lower()
+                    self.create_exit(data[line], i)
 
-                    self.tree.create_node("Exit", exit_name, state)
-                    self.tree.create_node(exit_clear, f"{exit_name}_{exit_underline}", exit_name)
+
+    def create_transition(self, line, i, parent):
+        source_state = line[i].split(":")[0].lower()
+        goal_state = line[i+2].split(":")[0].lower()
+        t_id = random.random()
+
+        try:
+            self.tree.create_node("+", t_id, f"transitions_in_{parent}")
+        except NodeIDAbsentError as msg:
+            if self.warnings:
+                print(msg)
+            self.tree.create_node("+", t_id, f"transitions")
+
+        s_id = random.random()
+        self.tree.create_node("Source_state", s_id, t_id)
+        self.tree.create_node(source_state, random.random(), s_id)
+
+        g_id = random.random()
+        self.tree.create_node("Goal_state", g_id, t_id)
+        self.tree.create_node(goal_state, random.random(), g_id)
+
+
+    def create_state(self, data, line, i):
+        new_node = data[line][i+1].lower()
+        
+        self.tree.create_node(new_node, new_node, parent=f"states_in_{self.parent_root}")   # create state node
+
+        self.tree.create_node(f"Transitions_in_{new_node}", f"transitions_in_{new_node}", parent=new_node)  # create Transitions leaf
+        self.tree.create_node(f"States_in_{new_node}", f"states_in_{new_node}", parent=new_node)  # create States leaf
+        self.explore_inner(line, data, i, new_node)
+
+
+    def create_exit(self, line, i):
+        state = line[i].split(":")[0].lower()
+        exit_name = f"exit_{state}"
+        exit_clear = " ".join(line[i+2:])
+        exit_underline = "_".join(line[i+2:]).lower()
+
+        self.tree.create_node("Exit", exit_name, state)
+        self.tree.create_node(exit_clear, f"{exit_name}_{exit_underline}", exit_name)
+
+
+    def create_entry(self, line, i):
+        state = line[i].split(":")[0].lower()
+        entry_name = f"entry_{state}"
+        entry_clear = " ".join(line[i+2:])
+        entry_underline = "_".join(line[i+2:]).lower()
+
+        self.tree.create_node("Entry", entry_name, state)
+        self.tree.create_node(entry_clear, f"{entry_name}_{entry_underline}", entry_name)
+
 
     def explore_inner(self, line, data, i, parent):
         lline = line
