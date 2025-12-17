@@ -4,12 +4,13 @@ import random
 
 
 class Parser():
-    def __init__(self, file="example_coffeeMachine/coffee_machine.puml"):
+    def __init__(self, file="example_coffeeMachine/coffee_machine.puml", warnings=True):
         self.f = open(file)
         self.data = [x.split(" ") for x in self.f.read().split("\n")]
         self.parent = file.split("/")[-1].split(".")[0]
         self.parent_root = self.parent.lower()
         self.tree = Tree()
+        self.warnings = warnings
         self.opened = 1
         self.closed = 0
 
@@ -18,8 +19,6 @@ class Parser():
         self.tree.create_node("Transitions", f"transitions", parent=self.parent_root)
 
         self.find_state(self.data, 0, self.parent_root)
-
-        self.tree.show()
 
     def find_state(self, data, i, parent):
 
@@ -33,8 +32,8 @@ class Parser():
                     self.tree.create_node(f"Transitions_in_{new_node}", f"transitions_in_{new_node}", parent=new_node)
                     self.explore_inner(line, data, i, new_node)
                     
-                
-                if data[line][i+1] == "-->" or data[line][i+1] == "->" :      #transition
+                #transition
+                if data[line][i+1] == "-->" or data[line][i+1] == "->" :
                     source_state = data[line][i].split(":")[0].lower()
                     goal_state = data[line][i+2].split(":")[0].lower()
                     t_id = random.random()
@@ -42,7 +41,8 @@ class Parser():
                     try:
                         self.tree.create_node("+", t_id, f"transitions_in_{parent}")
                     except NodeIDAbsentError as msg:
-                        print(msg)
+                        if self.warnings:
+                            print(msg)
                         self.tree.create_node("+", t_id, f"transitions")
 
                     s_id = random.random()
@@ -53,7 +53,8 @@ class Parser():
                     self.tree.create_node("Goal_state", g_id, t_id)
                     self.tree.create_node(goal_state, random.random(), g_id)
 
-                if data[line][i+1] == "Entry:":      #entry
+                #entry
+                if data[line][i+1] == "Entry:":
                     state = data[line][i].split(":")[0].lower()
                     entry_name = f"entry_{state}"
                     entry_clear = " ".join(data[line][i+2:])
@@ -62,7 +63,8 @@ class Parser():
                     self.tree.create_node("Entry", entry_name, state)
                     self.tree.create_node(entry_clear, f"{entry_name}_{entry_underline}", entry_name)
 
-                if data[line][i+1] == "Exit:":      #exit
+                #exit
+                if data[line][i+1] == "Exit:":
                     state = data[line][i].split(":")[0].lower()
                     exit_name = f"exit_{state}"
                     exit_clear = " ".join(data[line][i+2:])
@@ -84,7 +86,9 @@ class Parser():
 
             self.find_state(data[line:lline], i+2, parent.lower())
 
+
                 
 if __name__=="__main__":
-    parser = Parser()
+    parser = Parser(warnings=False)
     parser.puml_to_ast()
+    parser.tree.show()
