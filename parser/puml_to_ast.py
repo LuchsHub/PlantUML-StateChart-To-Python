@@ -28,27 +28,30 @@ class Parser():
         for line in range(len(data)):
             if len(data[line]) >= i+2:
 
+                # state
                 if data[line][i] == "state":
                     self.create_state(data, line, i)
                     
-                #transition
+                # transition
                 if data[line][i+1] == "-->" or data[line][i+1] == "->" :
                     self.create_transition(data[line], i, parent)
 
-                #entry
+                # entry
                 if data[line][i+1] == "Entry:":
                     self.create_entry(data[line], i)
 
-                #exit
+                # exit
                 if data[line][i+1] == "Exit:":
-                    self.create_exit(data[line], i)
+                    self.create_exit(data[line], i, parent)
 
 
     def create_transition(self, line, i, parent):
+        #first get all names
         source_state = line[i].split(":")[0].lower()
         goal_state = line[i+2].split(":")[0].lower()
         t_id = random.random()
 
+        # dumb way of creating the transition root
         try:
             self.tree.create_node("+", t_id, f"transitions_in_{parent}")
         except NodeIDAbsentError as msg:
@@ -56,32 +59,43 @@ class Parser():
                 print(msg)
             self.tree.create_node("+", t_id, f"transitions")
 
+        # set source state
         s_id = random.random()
         self.tree.create_node("Source_state", s_id, t_id)
         self.tree.create_node(source_state, random.random(), s_id)
+        # save source state to states if not there already
+        if self.tree.get_node(f"{source_state}_in_{parent}") is None:
+            self.tree.create_node(source_state, f"{source_state}_in_{parent}", f"states_in_{parent}")
 
+        # set destination state
         g_id = random.random()
         self.tree.create_node("Goal_state", g_id, t_id)
         self.tree.create_node(goal_state, random.random(), g_id)
+        # save destination state to states if not there already
+        if self.tree.get_node(f"{goal_state}_in_{parent}") is None:
+            self.tree.create_node(goal_state, f"{goal_state}_in_{parent}", f"states_in_{parent}")
 
 
     def create_state(self, data, line, i):
         new_node = data[line][i+1].lower()
+        new_node_id = f"{new_node}_in_{self.parent_root}"
+        self.tree.show()
+        print(new_node_id)
         
-        self.tree.create_node(new_node, new_node, parent=f"states_in_{self.parent_root}")   # create state node
+        self.tree.create_node(new_node, new_node_id, parent=f"states_in_{self.parent_root}")   # create state node
 
-        self.tree.create_node(f"Transitions_in_{new_node}", f"transitions_in_{new_node}", parent=new_node)  # create Transitions leaf
-        self.tree.create_node(f"States_in_{new_node}", f"states_in_{new_node}", parent=new_node)  # create States leaf
-        self.explore_inner(line, data, i, new_node)
+        self.tree.create_node(f"Transitions_in_{new_node}", f"transitions_in_{new_node}", parent=new_node_id)  # create Transitions leaf
+        self.tree.create_node(f"States_in_{new_node}", f"states_in_{new_node}", parent=new_node_id)  # create States leaf
+        self.explore_inner(line, data, i, new_node_id)
 
 
-    def create_exit(self, line, i):
+    def create_exit(self, line, i, parent):
         state = line[i].split(":")[0].lower()
         exit_name = f"exit_{state}"
         exit_clear = " ".join(line[i+2:])
         exit_underline = "_".join(line[i+2:]).lower()
 
-        self.tree.create_node("Exit", exit_name, state)
+        self.tree.create_node("Exit", exit_name, f"{state}_in_{parent}")
         self.tree.create_node(exit_clear, f"{exit_name}_{exit_underline}", exit_name)
 
 
