@@ -34,7 +34,6 @@ class Parser():
                     
                 # transition
                 if data[line][i+1] == "-->" or data[line][i+1] == "->" :
-                    self.tree.show()
                     self.create_transition(data[line], i, "_".join(parent.split("_")[:1]))
 
                 # entry
