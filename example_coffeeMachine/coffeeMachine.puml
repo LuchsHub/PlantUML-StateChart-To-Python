@@ -19,7 +19,7 @@ state An {
 
   Leerlauf --> Zubereitung : kaffeeMachen [wasser > 20]
 
-  Zubereitung --> Ausgabe
+  Zubereitung --> Ausgabe : zubereitungAbschließen
 
   Ausgabe --> Leerlauf : kaffeeEntnehmen
 }
