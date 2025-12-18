@@ -53,6 +53,7 @@ class An(CompositeState):
         self.zubereitung = Zubereitung(self)
         self.ausgabe = Ausgabe(self)
 
+        # TODO: Leerlauf Entry wird noch nicht aufgerufen...
         self._state = self.leerlauf
 
     def entry(self):
@@ -85,6 +86,7 @@ class StateMachine:
         self.an = An(self)
 
         self._state = self.aus
+        self._state.entry()
 
     def dispatch(self, event: str):
         self._state.dispatch(event)
