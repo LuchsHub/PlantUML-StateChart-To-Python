@@ -16,9 +16,9 @@ class Parser():
 
 
     def puml_to_ast(self):
-        self.tree.create_node(self.parent, self.parent_root)
-        self.tree.create_node("Transitions", f"transitions_in_{self.parent_root}", parent=self.parent_root)
-        self.tree.create_node("States", f"states_in_{self.parent_root}", parent=self.parent_root)
+        self.tree.create_node(self.parent_root, self.parent_root)
+        self.tree.create_node(f"transitions_in_{self.parent_root}", f"transitions_in_{self.parent_root}", parent=self.parent_root)
+        self.tree.create_node(f"states_in_{self.parent_root}", f"states_in_{self.parent_root}", parent=self.parent_root)
 
         self.find_state(self.data, 0, self.parent_root)
 
