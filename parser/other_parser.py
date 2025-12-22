@@ -14,7 +14,7 @@ for state in ast.children(f"states_in_{sm_name}"):
         continue
 
     substate_count = 0
-    for substate in ast.children(f"States_in_{state_node.tag}"):
+    for substate in ast.children(f"states_in_{state_node.tag}"):
         substate_count += 1
     print(substate_count)
 
