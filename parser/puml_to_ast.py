@@ -22,6 +22,8 @@ class Parser():
 
         self.find_state(self.data, 0, self.parent_root)
 
+        return self.tree
+
 
     def find_state(self, data, i, parent):
 
