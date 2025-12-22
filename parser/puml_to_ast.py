@@ -16,11 +16,13 @@ class Parser():
 
 
     def puml_to_ast(self):
-        self.tree.create_node(self.parent, self.parent_root)
-        self.tree.create_node("Transitions", f"transitions_in_{self.parent_root}", parent=self.parent_root)
-        self.tree.create_node("States", f"states_in_{self.parent_root}", parent=self.parent_root)
+        self.tree.create_node(self.parent_root, self.parent_root)
+        self.tree.create_node(f"transitions_in_{self.parent_root}", f"transitions_in_{self.parent_root}", parent=self.parent_root)
+        self.tree.create_node(f"states_in_{self.parent_root}", f"states_in_{self.parent_root}", parent=self.parent_root)
 
         self.find_state(self.data, 0, self.parent_root)
+
+        return self.tree
 
 
     def find_state(self, data, i, parent):
@@ -53,11 +55,17 @@ class Parser():
 
         # dumb way of creating the transition root
         try:
-            self.tree.create_node("+", t_id, f"transitions_in_{parent}")
+            if len(line) >= i+5:
+                self.tree.create_node(line[i+4], t_id, f"transitions_in_{parent}")
+            else:
+                self.tree.create_node("+", t_id, f"transitions_in_{parent}")
         except NodeIDAbsentError as msg:
             if self.warnings:
                 print(msg)
-            self.tree.create_node("+", t_id, f"transitions")
+            if len(line) >= i+5:
+                self.tree.create_node(line[i+4], t_id, f"transitions_in_{parent}")
+            else:
+                self.tree.create_node("+", t_id, f"transitions")
 
         # set source state
         s_id = random.random()
@@ -68,12 +76,29 @@ class Parser():
             self.tree.create_node(source_state, f"{source_state}_in_{parent}", f"states_in_{parent}")
 
         # set destination state
-        g_id = random.random()
-        self.tree.create_node("Goal_state", g_id, t_id)
-        self.tree.create_node(goal_state, random.random(), g_id)
-        # save destination state to states if not there already
-        if self.tree.get_node(f"{goal_state}_in_{parent}") is None:
-            self.tree.create_node(goal_state, f"{goal_state}_in_{parent}", f"states_in_{parent}")
+        history_check = goal_state.split("[")
+        if len(history_check)==2:
+            g_id = random.random()
+            self.tree.create_node("Goal_state", g_id, t_id)
+            self.tree.create_node(f"History_state_{history_check[0]}", random.random(), g_id)
+
+            if self.tree.get_node(f"H_{history_check[0]}") is None:
+                self.tree.create_node(f"History_state_{history_check[0]}", f"H_{history_check[0]}", parent=f"states_in_{history_check[0]}")
+        
+        else:
+            g_id = random.random()
+            self.tree.create_node("Goal_state", g_id, t_id)
+            self.tree.create_node(goal_state, random.random(), g_id)
+            # save destination state to states if not there already
+            if self.tree.get_node(f"{goal_state}_in_{parent}") is None:
+                self.tree.create_node(goal_state, f"{goal_state}_in_{parent}", f"states_in_{parent}")
+
+        # set guard
+        if len(line) > i+6:
+            gu_id = random.random()
+            self.tree.create_node("Guard", gu_id, t_id)
+            self.tree.create_node("".join(line[7:])[1:-1], random.random(), gu_id)
+
 
 
     def create_state(self, data, line, i):
@@ -85,6 +110,12 @@ class Parser():
 
             self.tree.create_node(f"Transitions_in_{new_node}", f"transitions_in_{new_node}", parent=new_node_id)  # create Transitions leaf
             self.tree.create_node(f"States_in_{new_node}", f"states_in_{new_node}", parent=new_node_id)  # create States leaf
+
+        # for declared history states / therefor probably irrelevant
+        history_check = new_node.split("[")
+        if len(history_check)==2:
+            self.tree.create_node(f"History_state_{new_node}", f"H_{new_node}", parent=f"states_in_{new_node}")
+
         self.explore_inner(line, data, i, new_node_id)
 
 
