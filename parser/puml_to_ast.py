@@ -53,11 +53,17 @@ class Parser():
 
         # dumb way of creating the transition root
         try:
-            self.tree.create_node("+", t_id, f"transitions_in_{parent}")
+            if len(line) >= i+5:
+                self.tree.create_node(line[i+4], t_id, f"transitions_in_{parent}")
+            else:
+                self.tree.create_node("+", t_id, f"transitions_in_{parent}")
         except NodeIDAbsentError as msg:
             if self.warnings:
                 print(msg)
-            self.tree.create_node("+", t_id, f"transitions")
+            if len(line) >= i+5:
+                self.tree.create_node(line[i+4], t_id, f"transitions_in_{parent}")
+            else:
+                self.tree.create_node("+", t_id, f"transitions")
 
         # set source state
         s_id = random.random()
@@ -74,6 +80,13 @@ class Parser():
         # save destination state to states if not there already
         if self.tree.get_node(f"{goal_state}_in_{parent}") is None:
             self.tree.create_node(goal_state, f"{goal_state}_in_{parent}", f"states_in_{parent}")
+
+        # set guard
+        if len(line) > i+6:
+            gu_id = random.random()
+            self.tree.create_node("Guard", gu_id, t_id)
+            self.tree.create_node("".join(line[7:])[1:-1], random.random(), gu_id)
+
 
 
     def create_state(self, data, line, i):
