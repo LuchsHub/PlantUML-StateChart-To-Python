@@ -74,8 +74,8 @@ class An(CompositeStateWithHistory):
         self._state = None
         self._history = None
 
-        self.wasser = 0 
-            
+        self.wasser = 0
+
     def entry(self, use_history=False):
         wasserReinigen()
 
@@ -86,12 +86,11 @@ class An(CompositeStateWithHistory):
 
         self._state.entry()
 
-    
     def dispatch(self, event: str):
         if event == "stop":
             self._state.exit()
             self.context.transition(self.context.pause)
-        else: 
+        else:
             self._state.dispatch(event)
 
 
@@ -158,6 +157,6 @@ sm.an.wasser = 50  # Wasser auffüllen
 sm.dispatch("kaffeeMachen")
 print(sm._state.state.__class__.__name__)  # Unterzustand Zubereitung
 sm.dispatch("stop")
-print(sm._state.__class__.__name__) # Pause
+print(sm._state.__class__.__name__)  # Pause
 sm.dispatch("fortfahren")
 print(sm._state.state.__class__.__name__)  # Unterzustand Zubereitung
