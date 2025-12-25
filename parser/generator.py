@@ -1,0 +1,274 @@
+from puml_to_ast import Parser
+
+
+class Generator:
+    def __init__(self, tree, root):
+        self.tree = tree
+        self.root = root
+        self.actions = set()
+        self.lines = []
+
+    def generate(self):
+        self.emit_base_classes()
+        self.emit_states(self.root)
+        self.emit_state_machine()
+        self.emit_actions()
+        return "\n".join(self.lines)
+
+    def emit_base_classes(self):
+        self.lines += [
+            "from abc import ABC, abstractmethod",
+            "",
+            "",
+            "class State(ABC):",
+            "    @abstractmethod",
+            "    def __init__(self, context):",
+            "        pass",
+            "",
+            "    def entry(self, use_history=False):",
+            "        pass",
+            "",
+            "    def exit(self):",
+            "        pass",
+            "",
+            "    def dispatch(self, event: str):",
+            "        pass",
+            "",
+            "",
+            "class SimpleState(State):",
+            "    def __init__(self, context):",
+            "        self.context = context",
+            "",
+            "",
+            "class CompositeState(State):",
+            "    @property",
+            "    def state(self) -> State:",
+            "        return self._state",
+            "",
+            "    # __init__ bleibt abstrakt: konkrete Unterzustände + Startzustand müssen implementiert werden",
+            "",
+            "    @abstractmethod",
+            "    def entry(self, use_history=False):",
+            "        pass",
+            "",
+            "    def dispatch(self, event: str):",
+            "        self._state.dispatch(event)",
+            "",
+            "    def transition(self, new_state: State, use_history=False):",
+            "        self._state.exit()",
+            "        self._state = new_state",
+            "        self._state.entry(use_history)",
+            "",
+            "",
+            "class CompositeStateWithHistory(CompositeState):",
+            "    @property",
+            "    def history(self) -> State:",
+            "        return self._history",
+            "",
+            "    # __init__ bleibt abstrakt: konkrete Unterzustände + Startzustand müssen implementiert werden",
+            "",
+            "    def transition(self, new_state: State, use_history=False):",
+            "        self._state.exit()",
+            "        self._state = new_state",
+            "        self._history = self._state",
+            "        self._state.entry(use_history)",
+            "",
+            "",
+        ]
+
+    def emit_state(self, state_node):
+        name = state_node.tag
+        is_composite = bool(self.tree.children(f"states_in_{name}"))
+
+        super_class = "CompositeState" if is_composite else "SimpleState"
+        self.lines.append(f"class {name.capitalize()}({super_class}):")
+
+        self.emit_init(state_node, is_composite)
+        self.emit_entry_exit(state_node, is_composite)
+        self.emit_dispatch(state_node, is_composite)
+        self.lines.append("")
+
+        """ if is_composite:
+            self.emit_states(name) """
+
+    def emit_states(self, parent):
+        # funktionuckelt noch nicht, solange states manchmal groß, manchmal klein geschrieben ist
+        # + würde versuchen, states_in_history_state innerhalb von an zu finden
+        # also zwei ToDos für dich, lieber Albi
+        states_root = f"states_in_{parent}"
+
+        for state_node in self.tree.children(states_root):
+            if state_node.tag == "[*]":
+                continue
+
+            self.emit_state(state_node)
+
+    def emit_init(self, state_node, composite):
+        name = state_node.tag
+
+        if not composite:
+            return
+
+        self.lines.append("    def __init__(self, context):")
+        self.lines.append("        self.context = context")
+
+        substates = self.tree.children(f"states_in_{name}")
+        for sub in substates:
+            if sub.tag == "[*]":
+                continue
+
+            self.lines.append(f"        self.{sub.tag} = {sub.tag.capitalize()}(self)")
+
+        self.lines.append("        self._state = None")
+        self.lines.append("")
+
+    def emit_entry_exit(self, state_node, is_composite):
+        name = state_node.tag
+        entry = exit = None
+
+        for child in self.tree.children(state_node.identifier):
+            if child.tag == "Entry":
+                entry = self.tree.children(child.identifier)[0].tag
+                self.actions.add(entry)
+            elif child.tag == "Exit":
+                exit = self.tree.children(child.identifier)[0].tag
+                self.actions.add(exit)
+
+        if is_composite:
+            self.lines.append("    def entry(self):")
+            if entry:
+                self.lines.append(f"        {entry}()")
+                self.lines.append("")
+
+            transitions_root = f"transitions_in_{name}"
+            for t in self.tree.children(transitions_root):
+                source, target = None, None
+
+                for c in self.tree.children(t.identifier):
+                    if c.tag == "Source_state":
+                        source = self.tree.children(c.identifier)[0].tag
+                    elif c.tag == "Goal_state":
+                        target = self.tree.children(c.identifier)[0].tag
+
+                if source == "[*]":
+                    self.lines.append(f"        self._state = self.{target}")
+                    break
+
+            self.lines.append("")
+            self.lines.append("        self._state.entry()")
+            self.lines.append("")
+        else:
+            if entry:
+                self.lines.append("    def entry(self):")
+                self.lines.append(f"        {entry}()")
+                self.lines.append("")
+
+        if exit:
+            self.lines.append("    def exit(self):")
+            self.lines.append(f"        {exit}()")
+            self.lines.append("")
+
+    def emit_dispatch(self, state_node, is_composite):
+        name = state_node.tag
+
+        parent_id = state_node.predecessor(self.tree.identifier)
+        parent_node = self.tree.get_node(parent_id)
+        grandparent_id = parent_node.predecessor(self.tree.identifier)
+        grandparent_node = self.tree.get_node(grandparent_id)
+        grandparent_name = grandparent_node.tag
+
+        trans_root = f"transitions_in_{grandparent_name}"
+
+        dispatch_lines = []
+        for t in self.tree.children(trans_root):
+            source, target = None, None
+
+            for c in self.tree.children(t.identifier):
+                if c.tag == "Source_state":
+                    source = self.tree.children(c.identifier)[0].tag
+                elif c.tag == "Goal_state":
+                    target = self.tree.children(c.identifier)[0].tag
+                elif c.tag == "Guard":
+                    guard = self.tree.children(c.identifier)[0].tag
+
+            if source != name:
+                continue
+
+            event_label = t.tag
+            guard = None
+            condition = f'event == "{event_label}"'
+            if guard:
+                condition += f" and ({guard})"
+
+            dispatch_lines.append(f"        if {condition}:")
+            if is_composite:
+                dispatch_lines.append("            self._state.exit()")
+            dispatch_lines.append(
+                f"            self.context.transition(self.context.{target})"
+            )
+
+        if dispatch_lines:
+            self.lines.append("    def dispatch(self, event: str):")
+            self.lines += dispatch_lines
+            if is_composite:
+                self.lines.append("        else:")
+                self.lines.append("            self._state.dispatch(event)")
+            self.lines.append("")
+
+    def emit_state_machine(self):
+        self.lines.append("class StateMachine:")
+        self.lines.append("    def __init__(self):")
+
+        states_root = f"states_in_{self.root}"
+        for state_node in self.tree.children(states_root):
+            if state_node.tag == "[*]":
+                continue
+
+            self.lines.append(
+                f"        self.{state_node.tag} = {state_node.tag.capitalize()}(self)"
+            )
+
+        transitions_root = f"transitions_in_{self.root}"
+        for t in self.tree.children(transitions_root):
+            source, target = None, None
+
+            for c in self.tree.children(t.identifier):
+                if c.tag == "Source_state":
+                    source = self.tree.children(c.identifier)[0].tag
+                elif c.tag == "Goal_state":
+                    target = self.tree.children(c.identifier)[0].tag
+
+            if source == "[*]":
+                self.lines.append(f"        self._state = self.{target}")
+                break
+
+        self.lines.append("        self._state.entry()")
+        self.lines.append("")
+        self.lines.append("    def dispatch(self, event: str):")
+        self.lines.append("        self._state.dispatch(event)")
+        self.lines.append("")
+        self.lines.append("    def transition(self, new_state: State):")
+        self.lines.append("        self._state.exit()")
+        self.lines.append("        self._state = new_state")
+        self.lines.append("        self._state.entry()")
+        self.lines.append("")
+        self.lines.append("")
+
+    def emit_actions(self):
+        for a in self.actions:
+            self.lines.append(f"def {a}():")
+            self.lines.append(f"    pass")
+            self.lines.append("")
+            self.lines.append("")
+
+
+parser = Parser(file="../example_coffeeMachine/coffeeMachine.puml", warnings=False)
+tree = parser.puml_to_ast()
+root = parser.parent_root
+
+gen = Generator(tree, root)
+
+code = gen.generate()
+
+with open(f"{root}.py", "w", encoding="utf-8") as f:
+    f.write(code)
