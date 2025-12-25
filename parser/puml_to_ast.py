@@ -83,7 +83,7 @@ class Parser():
             self.tree.create_node(f"History_state_{history_check[0]}", random.random(), g_id)
 
             if self.tree.get_node(f"H_{history_check[0]}") is None:
-                self.tree.create_node(f"History_state_{history_check[0]}", f"H_{history_check[0]}", parent=f"states_in_{history_check[0]}")
+                self.tree.create_node(f"History", f"H_{history_check[0]}", parent=f"{history_check[0]}_in_{parent}")
         
         else:
             g_id = random.random()
