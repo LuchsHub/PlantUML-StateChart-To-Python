@@ -71,7 +71,7 @@ class Parser():
         self.tree.create_node("source_state", s_id, t_id)
         self.tree.create_node(source_state, random.random(), s_id)
         # save source state to states if not there already
-        if self.tree.get_node(f"{source_state}_in_{parent}") is None:
+        if self.tree.get_node(f"{source_state}_in_{parent}") is None and source_state != "[*]":
             self.tree.create_node(source_state, f"{source_state}_in_{parent}", f"states_in_{parent}")
 
         # set destination state
@@ -89,7 +89,7 @@ class Parser():
             self.tree.create_node("goal_state", g_id, t_id)
             self.tree.create_node(goal_state, random.random(), g_id)
             # save destination state to states if not there already
-            if self.tree.get_node(f"{goal_state}_in_{parent}") is None:
+            if self.tree.get_node(f"{goal_state}_in_{parent}") is None and source_state != "[*]":
                 self.tree.create_node(goal_state, f"{goal_state}_in_{parent}", f"states_in_{parent}")
 
         # set guard
@@ -104,7 +104,7 @@ class Parser():
         new_node = data[line][i+1].lower()
         new_node_id = f"{new_node}_in_{self.parent}"
         
-        if self.tree.get_node(f"{new_node}_in_{self.parent}") is None:
+        if self.tree.get_node(f"{new_node}_in_{self.parent}") is None and new_node != "[*]":
             self.tree.create_node(new_node, new_node_id, parent=f"states_in_{self.parent}")   # create state node
 
             self.tree.create_node(f"transitions_in_{new_node}", f"transitions_in_{new_node}", parent=new_node_id)  # create Transitions leaf
