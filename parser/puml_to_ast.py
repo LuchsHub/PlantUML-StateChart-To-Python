@@ -7,8 +7,7 @@ class Parser():
     def __init__(self, file="example_coffeeMachine/coffeeMachine.puml", warnings=True):
         self.f = open(file)
         self.data = [x.split(" ") for x in self.f.read().split("\n")]
-        self.parent = file.split("/")[-1].split(".")[0]
-        self.parent_root = self.parent.lower()
+        self.parent = file.split("/")[-1].split(".")[0].lower()
         self.tree = Tree()
         self.warnings = warnings
         self.opened = 1
@@ -16,11 +15,11 @@ class Parser():
 
 
     def puml_to_ast(self):
-        self.tree.create_node(self.parent_root, self.parent_root)
-        self.tree.create_node(f"transitions_in_{self.parent_root}", f"transitions_in_{self.parent_root}", parent=self.parent_root)
-        self.tree.create_node(f"states_in_{self.parent_root}", f"states_in_{self.parent_root}", parent=self.parent_root)
+        self.tree.create_node(self.parent, self.parent)
+        self.tree.create_node(f"transitions_in_{self.parent}", f"transitions_in_{self.parent}", parent=self.parent)
+        self.tree.create_node(f"states_in_{self.parent}", f"states_in_{self.parent}", parent=self.parent)
 
-        self.find_state(self.data, 0, self.parent_root)
+        self.find_state(self.data, 0, self.parent)
 
         return self.tree
 
@@ -69,52 +68,52 @@ class Parser():
 
         # set source state
         s_id = random.random()
-        self.tree.create_node("Source_state", s_id, t_id)
+        self.tree.create_node("source_state", s_id, t_id)
         self.tree.create_node(source_state, random.random(), s_id)
         # save source state to states if not there already
-        if self.tree.get_node(f"{source_state}_in_{parent}") is None:
+        if self.tree.get_node(f"{source_state}_in_{parent}") is None and source_state != "[*]":
             self.tree.create_node(source_state, f"{source_state}_in_{parent}", f"states_in_{parent}")
 
         # set destination state
         history_check = goal_state.split("[")
         if len(history_check)==2:
             g_id = random.random()
-            self.tree.create_node("Goal_state", g_id, t_id)
-            self.tree.create_node(f"History_state_{history_check[0]}", random.random(), g_id)
+            self.tree.create_node("goal_state", g_id, t_id)
+            self.tree.create_node(f"history_state_{history_check[0]}", random.random(), g_id)
 
-            if self.tree.get_node(f"H_{history_check[0]}") is None:
-                self.tree.create_node(f"History_state_{history_check[0]}", f"H_{history_check[0]}", parent=f"states_in_{history_check[0]}")
+            if self.tree.get_node(f"h_{history_check[0]}") is None:
+                self.tree.create_node(f"history", f"h_{history_check[0]}", parent=f"{history_check[0]}_in_{parent}")
         
         else:
             g_id = random.random()
-            self.tree.create_node("Goal_state", g_id, t_id)
+            self.tree.create_node("goal_state", g_id, t_id)
             self.tree.create_node(goal_state, random.random(), g_id)
             # save destination state to states if not there already
-            if self.tree.get_node(f"{goal_state}_in_{parent}") is None:
+            if self.tree.get_node(f"{goal_state}_in_{parent}") is None and source_state != "[*]":
                 self.tree.create_node(goal_state, f"{goal_state}_in_{parent}", f"states_in_{parent}")
 
         # set guard
         if len(line) > i+6:
             gu_id = random.random()
-            self.tree.create_node("Guard", gu_id, t_id)
+            self.tree.create_node("guard", gu_id, t_id)
             self.tree.create_node("".join(line[7:])[1:-1], random.random(), gu_id)
 
 
 
     def create_state(self, data, line, i):
         new_node = data[line][i+1].lower()
-        new_node_id = f"{new_node}_in_{self.parent_root}"
+        new_node_id = f"{new_node}_in_{self.parent}"
         
-        if self.tree.get_node(f"{new_node}_in_{self.parent_root}") is None:
-            self.tree.create_node(new_node, new_node_id, parent=f"states_in_{self.parent_root}")   # create state node
+        if self.tree.get_node(f"{new_node}_in_{self.parent}") is None and new_node != "[*]":
+            self.tree.create_node(new_node, new_node_id, parent=f"states_in_{self.parent}")   # create state node
 
-            self.tree.create_node(f"Transitions_in_{new_node}", f"transitions_in_{new_node}", parent=new_node_id)  # create Transitions leaf
-            self.tree.create_node(f"States_in_{new_node}", f"states_in_{new_node}", parent=new_node_id)  # create States leaf
+            self.tree.create_node(f"transitions_in_{new_node}", f"transitions_in_{new_node}", parent=new_node_id)  # create Transitions leaf
+            self.tree.create_node(f"states_in_{new_node}", f"states_in_{new_node}", parent=new_node_id)  # create States leaf
 
         # for declared history states / therefor probably irrelevant
         history_check = new_node.split("[")
         if len(history_check)==2:
-            self.tree.create_node(f"History_state_{new_node}", f"H_{new_node}", parent=f"states_in_{new_node}")
+            self.tree.create_node(f"history_state_{new_node}", f"h_{new_node}", parent=f"states_in_{new_node}")
 
         self.explore_inner(line, data, i, new_node_id)
 
@@ -125,7 +124,7 @@ class Parser():
         exit_clear = " ".join(line[i+2:])
         exit_underline = "_".join(line[i+2:]).lower()
 
-        self.tree.create_node("Exit", exit_name, f"{state}_in_{parent}")
+        self.tree.create_node("exit", exit_name, f"{state}_in_{parent}")
         self.tree.create_node(exit_clear, f"{exit_name}_{exit_underline}", exit_name)
 
 
@@ -135,7 +134,7 @@ class Parser():
         entry_clear = " ".join(line[i+2:])
         entry_underline = "_".join(line[i+2:]).lower()
 
-        self.tree.create_node("Entry", entry_name, f"{state}_in_{parent}")
+        self.tree.create_node(entry_name, entry_name, f"{state}_in_{parent}")
         self.tree.create_node(entry_clear, f"{entry_name}_{entry_underline}", entry_name)
 
 
@@ -155,6 +154,6 @@ class Parser():
 
                 
 if __name__=="__main__":
-    parser = Parser(warnings=False)
+    parser = Parser(warnings=False, file="../example_coffeeMachine/coffeeMachine.puml")
     parser.puml_to_ast()
     parser.tree.show()
