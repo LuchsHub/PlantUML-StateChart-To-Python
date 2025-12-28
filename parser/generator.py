@@ -92,9 +92,6 @@ class Generator:
             self.emit_states(name) """
 
     def emit_states(self, parent):
-        # funktionuckelt noch nicht, solange states manchmal groß, manchmal klein geschrieben ist
-        # + würde versuchen, states_in_history_state innerhalb von an zu finden
-        # also zwei ToDos für dich, lieber Albi
         states_root = f"states_in_{parent}"
 
         for state_node in self.tree.children(states_root):
@@ -127,10 +124,10 @@ class Generator:
         entry = exit = None
 
         for child in self.tree.children(state_node.identifier):
-            if child.tag == "Entry":
+            if child.tag == "entry":
                 entry = self.tree.children(child.identifier)[0].tag
                 self.actions.add(entry)
-            elif child.tag == "Exit":
+            elif child.tag == "exit":
                 exit = self.tree.children(child.identifier)[0].tag
                 self.actions.add(exit)
 
@@ -145,9 +142,9 @@ class Generator:
                 source, target = None, None
 
                 for c in self.tree.children(t.identifier):
-                    if c.tag == "Source_state":
+                    if c.tag == "source_state":
                         source = self.tree.children(c.identifier)[0].tag
-                    elif c.tag == "Goal_state":
+                    elif c.tag == "goal_state":
                         target = self.tree.children(c.identifier)[0].tag
 
                 if source == "[*]":
@@ -184,11 +181,11 @@ class Generator:
             source, target = None, None
 
             for c in self.tree.children(t.identifier):
-                if c.tag == "Source_state":
+                if c.tag == "source_state":
                     source = self.tree.children(c.identifier)[0].tag
-                elif c.tag == "Goal_state":
+                elif c.tag == "goal_state":
                     target = self.tree.children(c.identifier)[0].tag
-                elif c.tag == "Guard":
+                elif c.tag == "guard":
                     guard = self.tree.children(c.identifier)[0].tag
 
             if source != name:
@@ -233,9 +230,9 @@ class Generator:
             source, target = None, None
 
             for c in self.tree.children(t.identifier):
-                if c.tag == "Source_state":
+                if c.tag == "source_state":
                     source = self.tree.children(c.identifier)[0].tag
-                elif c.tag == "Goal_state":
+                elif c.tag == "goal_state":
                     target = self.tree.children(c.identifier)[0].tag
 
             if source == "[*]":
@@ -264,7 +261,7 @@ class Generator:
 
 parser = Parser(file="../example_coffeeMachine/coffeeMachine.puml", warnings=False)
 tree = parser.puml_to_ast()
-root = parser.parent_root
+root = parser.parent
 
 gen = Generator(tree, root)
 
