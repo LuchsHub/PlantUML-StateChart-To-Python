@@ -1,5 +1,6 @@
 from puml_to_ast import Parser
 
+# TODO: Variablen für Guards
 
 class Generator:
     def __init__(self, tree, root):
@@ -52,8 +53,6 @@ class Generator:
             "    def state(self) -> State:",
             "        return self._state",
             "",
-            "    # __init__ bleibt abstrakt: konkrete Unterzustände + Startzustand müssen implementiert werden",
-            "",
             "    @abstractmethod",
             "    def entry(self, use_history=False):",
             "        pass",
@@ -71,8 +70,6 @@ class Generator:
             "    @property",
             "    def history(self) -> State:",
             "        return self._history",
-            "",
-            "    # __init__ bleibt abstrakt: konkrete Unterzustände + Startzustand müssen implementiert werden",
             "",
             "    def transition(self, new_state: State, use_history=False):",
             "        self._state.exit()",
@@ -196,7 +193,7 @@ class Generator:
 
         dispatch_lines = []
         for t in self.tree.children(trans_root):
-            source, target = None, None
+            source, target, guard = "", "", ""
 
             for c in self.tree.children(t.identifier):
                 if c.tag == "source_state":
@@ -210,7 +207,6 @@ class Generator:
                 continue
 
             event_label = t.tag
-            guard = None
             condition = f'event == "{event_label}"'
             if guard:
                 condition += f" and ({guard})"
@@ -218,9 +214,14 @@ class Generator:
             dispatch_lines.append(f"        if {condition}:")
             if is_composite:
                 dispatch_lines.append("            self._state.exit()")
-            dispatch_lines.append(
-                f"            self.context.transition(self.context.{target})"
-            )
+            if target.startswith("history_state_"):
+                dispatch_lines.append(
+                    f"            self.context.transition(self.context.{target[14:]}, use_hist=True)"
+                )
+            else:
+                dispatch_lines.append(
+                    f"            self.context.transition(self.context.{target})"
+                )
 
         if dispatch_lines:
             self.lines.append("    def dispatch(self, event: str):")
@@ -262,10 +263,10 @@ class Generator:
         self.lines.append("    def dispatch(self, event: str):")
         self.lines.append("        self._state.dispatch(event)")
         self.lines.append("")
-        self.lines.append("    def transition(self, new_state: State):")
+        self.lines.append("    def transition(self, new_state: State, use_hist: bool = False):")
         self.lines.append("        self._state.exit()")
         self.lines.append("        self._state = new_state")
-        self.lines.append("        self._state.entry()")
+        self.lines.append("        self._state.entry(use_hist)")
         self.lines.append("")
         self.lines.append("")
 
