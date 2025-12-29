@@ -134,7 +134,7 @@ class Parser():
         entry_clear = " ".join(line[i+2:])
         entry_underline = "_".join(line[i+2:]).lower()
 
-        self.tree.create_node(entry_name, entry_name, f"{state}_in_{parent}")
+        self.tree.create_node("entry", entry_name, f"{state}_in_{parent}")
         self.tree.create_node(entry_clear, f"{entry_name}_{entry_underline}", entry_name)
 
 
