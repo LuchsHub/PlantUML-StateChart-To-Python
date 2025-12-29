@@ -25,13 +25,14 @@ class Parser():
 
 
     def find_state(self, data, i, parent):
+        print(parent)
 
         for line in range(len(data)):
             if len(data[line]) >= i+2:
 
                 # state
                 if data[line][i] == "state":
-                    self.create_state(data, line, i)
+                    self.create_state(data, line, i, parent)
                     
                 # transition
                 if data[line][i+1] == "-->" or data[line][i+1] == "->" :
@@ -100,12 +101,13 @@ class Parser():
 
 
 
-    def create_state(self, data, line, i):
+    def create_state(self, data, line, i, parent):
+        parent = parent.split("_")[0]
         new_node = data[line][i+1].lower()
-        new_node_id = f"{new_node}_in_{self.parent}"
+        new_node_id = f"{new_node}_in_{parent}"
         
-        if self.tree.get_node(f"{new_node}_in_{self.parent}") is None and new_node != "[*]":
-            self.tree.create_node(new_node, new_node_id, parent=f"states_in_{self.parent}")   # create state node
+        if self.tree.get_node(f"{new_node}_in_{parent}") is None and new_node != "[*]":
+            self.tree.create_node(new_node_id, new_node_id, parent=f"states_in_{parent}")   # create state node
 
             self.tree.create_node(f"transitions_in_{new_node}", f"transitions_in_{new_node}", parent=new_node_id)  # create Transitions leaf
             self.tree.create_node(f"states_in_{new_node}", f"states_in_{new_node}", parent=new_node_id)  # create States leaf
@@ -154,6 +156,6 @@ class Parser():
 
                 
 if __name__=="__main__":
-    parser = Parser(warnings=False, file="../example_coffeeMachine/coffeeMachine.puml")
+    parser = Parser(warnings=False, file="../example_coffeeMachine/deepCoffeeMachine.puml")
     parser.puml_to_ast()
     parser.tree.show()
