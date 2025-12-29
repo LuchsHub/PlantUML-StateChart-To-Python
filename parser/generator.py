@@ -15,6 +15,13 @@ class Generator:
         self.emit_actions()
         return "\n".join(self.lines)
 
+    def uses_history(self, state_node):
+        for c in self.tree.children(state_node.identifier):
+            if c.tag == "history":
+                return True
+
+        return False
+
     def emit_base_classes(self):
         self.lines += [
             "from abc import ABC, abstractmethod",
@@ -79,15 +86,20 @@ class Generator:
     def emit_state(self, state_node):
         name = state_node.tag
         is_composite = bool(self.tree.children(f"states_in_{name}"))
+        has_hist = self.uses_history(state_node)
 
-        super_class = "CompositeState" if is_composite else "SimpleState"
+        if is_composite:
+            super_class = "CompositeStateWithHistory" if has_hist else "CompositeState"
+        else:
+            super_class = "SimpleState"
         self.lines.append(f"class {name.capitalize()}({super_class}):")
 
-        self.emit_init(state_node, is_composite)
-        self.emit_entry_exit(state_node, is_composite)
+        self.emit_init(state_node, is_composite, has_hist)
+        self.emit_entry_exit(state_node, is_composite, has_hist)
         self.emit_dispatch(state_node, is_composite)
         self.lines.append("")
 
+        # funktioniert noch nicht, Unterzustände haben noch kein states_in_x und transitions_in_x
         """ if is_composite:
             self.emit_states(name) """
 
@@ -95,12 +107,9 @@ class Generator:
         states_root = f"states_in_{parent}"
 
         for state_node in self.tree.children(states_root):
-            if state_node.tag == "[*]":
-                continue
-
             self.emit_state(state_node)
 
-    def emit_init(self, state_node, composite):
+    def emit_init(self, state_node, composite, has_hist):
         name = state_node.tag
 
         if not composite:
@@ -117,9 +126,11 @@ class Generator:
             self.lines.append(f"        self.{sub.tag} = {sub.tag.capitalize()}(self)")
 
         self.lines.append("        self._state = None")
+        if has_hist:
+            self.lines.append("        self._history = None")
         self.lines.append("")
 
-    def emit_entry_exit(self, state_node, is_composite):
+    def emit_entry_exit(self, state_node, is_composite, has_hist):
         name = state_node.tag
         entry = exit = None
 
@@ -132,10 +143,14 @@ class Generator:
                 self.actions.add(exit)
 
         if is_composite:
-            self.lines.append("    def entry(self):")
+            self.lines.append("    def entry(self, use_history=False):")
             if entry:
                 self.lines.append(f"        {entry}()")
                 self.lines.append("")
+            if has_hist:
+                self.lines.append(f"        if use_history:")
+                self.lines.append(f"            self._state = self._history")
+                self.lines.append("        else:")
 
             transitions_root = f"transitions_in_{name}"
             for t in self.tree.children(transitions_root):
@@ -148,7 +163,10 @@ class Generator:
                         target = self.tree.children(c.identifier)[0].tag
 
                 if source == "[*]":
-                    self.lines.append(f"        self._state = self.{target}")
+                    if has_hist:
+                        self.lines.append(f"            self._state = self.{target}")
+                    else:
+                        self.lines.append(f"        self._state = self.{target}")
                     break
 
             self.lines.append("")
