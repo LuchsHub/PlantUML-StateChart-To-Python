@@ -90,7 +90,7 @@ class Generator:
             is_composite = bool(self.tree.children(f"states_in_{name}"))
         except NodeIDAbsentError:
             is_composite = False
-        
+
         has_hist = False
         if is_composite:
             has_hist = self.uses_history(state_node)
@@ -288,4 +288,3 @@ class Generator:
             self.lines.append(f"    pass")
             self.lines.append("")
             self.lines.append("")
-
