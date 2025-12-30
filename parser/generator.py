@@ -88,9 +88,10 @@ class Generator:
     def emit_state(self, state_node):
         name = state_node.tag
         is_composite = bool(self.tree.children(f"states_in_{name}"))
-        has_hist = self.uses_history(state_node)
 
+        has_hist = False
         if is_composite:
+            has_hist = self.uses_history(state_node)
             super_class = "CompositeStateWithHistory" if has_hist else "CompositeState"
         else:
             super_class = "SimpleState"
@@ -221,8 +222,6 @@ class Generator:
                 condition += f" and ({guard})"
 
             dispatch_lines.append(f"        if {condition}:")
-            if is_composite:
-                dispatch_lines.append("            self.state.exit()")
             if target.startswith("history_state_"):
                 dispatch_lines.append(
                     f"            self.context.transition(self.context.{target[14:]}, use_hist=True)"
