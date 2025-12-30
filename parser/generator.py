@@ -82,7 +82,6 @@ class Generator:
 
     def emit_state(self, state_node):
         name = state_node.tag
-        print(name)
         is_composite = bool(self.tree.children(f"states_in_{name.split("_")[0]}"))
         has_hist = self.uses_history(state_node)
 

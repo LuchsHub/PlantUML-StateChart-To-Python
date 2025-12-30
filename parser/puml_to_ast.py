@@ -25,7 +25,6 @@ class Parser():
 
 
     def find_state(self, data, i, parent):
-        print(parent)
 
         for line in range(len(data)):
             if len(data[line]) >= i+2:
