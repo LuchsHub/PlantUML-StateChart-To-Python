@@ -1,3 +1,4 @@
+import re
 from treelib.exceptions import NodeIDAbsentError
 
 # TODO: Variablen für Guards
@@ -7,7 +8,8 @@ class Generator:
     def __init__(self, tree, root):
         self.tree = tree
         self.root = root
-        self.actions = set()
+        self._actions = set()
+        self._guard_variables = set()
         self.lines = []
 
     def generate(self):
@@ -104,7 +106,6 @@ class Generator:
         self.emit_dispatch(state_node, is_composite)
         self.lines.append("")
 
-        # funktioniert noch nicht, Unterzustände haben noch kein states_in_x und transitions_in_x
         if is_composite:
             self.emit_states(name)
 
@@ -133,6 +134,28 @@ class Generator:
         self.lines.append("        self._state = None")
         if has_hist:
             self.lines.append("        self._history = None")
+
+        for t in self.tree.children(f"transitions_in_{name}"):
+            for c in self.tree.children(t.identifier):
+                if c.tag == "guard":
+                    guard_code = self.tree.children(c.identifier)[0].tag
+                    match = re.split(r"\s*(>=|<=|==|!=|>|<)\s*", guard_code)
+                    left, op, right = match
+
+                    if left in self._guard_variables:
+                        continue
+
+                    if re.fullmatch(r"-?\d+", right):
+                        value = "0"
+                    elif re.fullmatch(r"-?\d*\.\d+", right):
+                        value = "0.0"
+                    elif right in ("True", "False"):
+                        value = "False"
+                    else:
+                        value = '""'
+
+                    self.lines.append(f"        self.{left} = {value}")
+
         self.lines.append("")
 
     def emit_entry_exit(self, state_node, is_composite, has_hist):
@@ -142,10 +165,10 @@ class Generator:
         for child in self.tree.children(state_node.identifier):
             if child.tag == "entry":
                 entry = self.tree.children(child.identifier)[0].tag
-                self.actions.add(entry)
+                self._actions.add(entry)
             elif child.tag == "exit":
                 exit = self.tree.children(child.identifier)[0].tag
-                self.actions.add(exit)
+                self._actions.add(exit)
 
         if is_composite:
             self.lines.append("    def entry(self, use_hist: bool = False):")
@@ -283,7 +306,7 @@ class Generator:
         self.lines.append("")
 
     def emit_actions(self):
-        for a in self.actions:
+        for a in self._actions:
             self.lines.append(f"def {a}():")
             self.lines.append(f"    pass")
             self.lines.append("")
