@@ -32,7 +32,7 @@ class Parser():
 
                 # state
                 if data[line][i] == "state":
-                    self.create_state(data, line, i, parent)
+                    self.create_state(line, i, parent, True, data=data)
                     
                 # transition
                 if data[line][i+1] == "-->" or data[line][i+1] == "->" :
@@ -73,7 +73,8 @@ class Parser():
         self.tree.create_node(source_state, random.random(), s_id)
         # save source state to states if not there already
         if self.tree.get_node(f"{source_state}_in_{parent}") is None and source_state != "[*]":
-            self.tree.create_node(source_state, f"{source_state}_in_{parent}", f"states_in_{parent}")
+            self.create_state(line, i, parent, False, new_node=source_state)
+            #self.tree.create_node(source_state, f"{source_state}_in_{parent}", f"states_in_{parent}")
 
         # set destination state
         history_check = goal_state.split("[")
@@ -91,7 +92,8 @@ class Parser():
             self.tree.create_node(goal_state, random.random(), g_id)
             # save destination state to states if not there already
             if self.tree.get_node(f"{goal_state}_in_{parent}") is None and source_state != "[*]":
-                self.tree.create_node(goal_state, f"{goal_state}_in_{parent}", f"states_in_{parent}")
+                self.create_state(line, i, parent, False, new_node=goal_state)
+                #self.tree.create_node(goal_state, f"{goal_state}_in_{parent}", f"states_in_{parent}")
 
         # set guard
         if len(line) > i+6:
@@ -101,12 +103,13 @@ class Parser():
 
 
 
-    def create_state(self, data, line, i, parent):
+    def create_state(self, line, i, parent, braces, data=None, new_node=None):
         parent = parent.split("_")[0]
-        new_node = data[line][i+1].lower()
+        if new_node == None:
+            new_node = data[line][i+1].lower()
         new_node_id = f"{new_node}_in_{parent}"
         
-        if self.tree.get_node(f"{new_node}_in_{parent}") is None and new_node != "[*]":
+        if self.tree.get_node(new_node_id) is None and new_node != "[*]":
             self.tree.create_node(new_node_id, new_node_id, parent=f"states_in_{parent}")   # create state node
 
             self.tree.create_node(f"transitions_in_{new_node}", f"transitions_in_{new_node}", parent=new_node_id)  # create Transitions leaf
@@ -117,7 +120,8 @@ class Parser():
         if len(history_check)==2:
             self.tree.create_node(f"history_state_{new_node}", f"h_{new_node}", parent=f"states_in_{new_node}")
 
-        self.explore_inner(line, data, i, new_node_id)
+        if braces:
+            self.explore_inner(line, data, i, new_node_id)
 
 
     def create_exit(self, line, i, parent):
@@ -156,6 +160,6 @@ class Parser():
 
                 
 if __name__=="__main__":
-    parser = Parser(warnings=False, file="../example_coffeeMachine/deepCoffeeMachine.puml")
+    parser = Parser(warnings=False, file="example_coffeeMachine/deepCoffeeMachine.puml")
     parser.puml_to_ast()
     parser.tree.show()
