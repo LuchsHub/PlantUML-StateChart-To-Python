@@ -82,7 +82,8 @@ class Generator:
 
     def emit_state(self, state_node):
         name = state_node.tag
-        is_composite = bool(self.tree.children(f"states_in_{name}"))
+        print(name)
+        is_composite = bool(self.tree.children(f"states_in_{name.split("_")[0]}"))
         has_hist = self.uses_history(state_node)
 
         if is_composite:
@@ -115,7 +116,7 @@ class Generator:
         self.lines.append("    def __init__(self, context):")
         self.lines.append("        self.context = context")
 
-        substates = self.tree.children(f"states_in_{name}")
+        substates = self.tree.children(f"states_in_{name.split("_")[0]}")
         for sub in substates:
             if sub.tag == "[*]":
                 continue
@@ -149,7 +150,7 @@ class Generator:
                 self.lines.append(f"            self._state = self._history")
                 self.lines.append("        else:")
 
-            transitions_root = f"transitions_in_{name}"
+            transitions_root = f"transitions_in_{name.split("_")[0]}"
             for t in self.tree.children(transitions_root):
                 source, target = None, None
 
@@ -278,8 +279,9 @@ class Generator:
             self.lines.append("")
 
 
-parser = Parser(file="../example_coffeeMachine/coffeeMachine.puml", warnings=False)
+parser = Parser(file="example_coffeeMachine/coffeeMachine.puml", warnings=False)
 tree = parser.puml_to_ast()
+tree.show()
 root = parser.parent
 
 gen = Generator(tree, root)
