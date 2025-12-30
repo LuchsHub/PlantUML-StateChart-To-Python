@@ -109,7 +109,7 @@ class Parser():
         new_node_id = f"{new_node}_in_{parent}"
         
         if self.tree.get_node(new_node_id) is None and new_node != "[*]":
-            self.tree.create_node(new_node_id, new_node_id, parent=f"states_in_{parent}")   # create state node
+            self.tree.create_node(new_node, new_node_id, parent=f"states_in_{parent}")   # create state node
 
             self.tree.create_node(f"transitions_in_{new_node}", f"transitions_in_{new_node}", parent=new_node_id)  # create Transitions leaf
             self.tree.create_node(f"states_in_{new_node}", f"states_in_{new_node}", parent=new_node_id)  # create States leaf

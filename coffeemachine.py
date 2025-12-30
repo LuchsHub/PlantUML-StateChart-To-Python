@@ -51,17 +51,21 @@ class CompositeStateWithHistory(CompositeState):
         self._state.entry(use_history)
 
 
-class Aus_in_coffeemachine(SimpleState):
+class Aus(SimpleState):
     def exit(self):
         piepen()
 
+    def dispatch(self, event: str):
+        if event == "anschalten":
+            self.context.transition(self.context.an)
 
-class An_in_coffeemachine(CompositeStateWithHistory):
+
+class An(CompositeStateWithHistory):
     def __init__(self, context):
         self.context = context
-        self.leerlauf_in_an = Leerlauf_in_an(self)
-        self.zubereitung_in_an = Zubereitung_in_an(self)
-        self.ausgabe_in_an = Ausgabe_in_an(self)
+        self.leerlauf = Leerlauf(self)
+        self.zubereitung = Zubereitung(self)
+        self.ausgabe = Ausgabe(self)
         self._state = None
         self._history = None
 
@@ -75,14 +79,25 @@ class An_in_coffeemachine(CompositeStateWithHistory):
 
         self._state.entry()
 
+    def dispatch(self, event: str):
+        if event == "stop":
+            self._state.exit()
+            self.context.transition(self.context.pause)
+        else:
+            self._state.dispatch(event)
 
-class Pause_in_coffeemachine(SimpleState):
+
+class Pause(SimpleState):
+    def dispatch(self, event: str):
+        if event == "fortfahren":
+            self.context.transition(self.context.an, use_hist=True)
+
 
 class StateMachine:
     def __init__(self):
-        self.aus_in_coffeemachine = Aus_in_coffeemachine(self)
-        self.an_in_coffeemachine = An_in_coffeemachine(self)
-        self.pause_in_coffeemachine = Pause_in_coffeemachine(self)
+        self.aus = Aus(self)
+        self.an = An(self)
+        self.pause = Pause(self)
         self._state = self.aus
         self._state.entry()
 
@@ -95,10 +110,10 @@ class StateMachine:
         self._state.entry(use_hist)
 
 
-def wasserReinigen():
+def piepen():
     pass
 
 
-def piepen():
+def wasserReinigen():
     pass
 
