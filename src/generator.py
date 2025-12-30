@@ -1,8 +1,6 @@
 import re
 from treelib.exceptions import NodeIDAbsentError
 
-# TODO: Variablen für Guards
-
 
 class Generator:
     def __init__(self, tree, root):
