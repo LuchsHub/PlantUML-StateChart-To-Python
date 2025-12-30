@@ -1,6 +1,8 @@
 from puml_to_ast import Parser
 
 # TODO: Variablen für Guards
+# TODO: 2. Bedingung für SimpleState-Check (keine Unterzustände)
+
 
 class Generator:
     def __init__(self, tree, root):
@@ -33,7 +35,7 @@ class Generator:
             "    def __init__(self, context):",
             "        pass",
             "",
-            "    def entry(self, use_history=False):",
+            "    def entry(self, use_hist: bool = False):",
             "        pass",
             "",
             "    def exit(self):",
@@ -54,16 +56,19 @@ class Generator:
             "        return self._state",
             "",
             "    @abstractmethod",
-            "    def entry(self, use_history=False):",
+            "    def entry(self, use_hist: bool = False):",
             "        pass",
             "",
-            "    def dispatch(self, event: str):",
-            "        self._state.dispatch(event)",
+            "    def exit(self):",
+            "        self.state.exit()",
             "",
-            "    def transition(self, new_state: State, use_history=False):",
-            "        self._state.exit()",
+            "    def dispatch(self, event: str):",
+            "        self.state.dispatch(event)",
+            "",
+            "    def transition(self, new_state: State, use_hist: bool = False):",
+            "        self.state.exit()",
             "        self._state = new_state",
-            "        self._state.entry(use_history)",
+            "        self.state.entry(use_hist)",
             "",
             "",
             "class CompositeStateWithHistory(CompositeState):",
@@ -71,11 +76,11 @@ class Generator:
             "    def history(self) -> State:",
             "        return self._history",
             "",
-            "    def transition(self, new_state: State, use_history=False):",
-            "        self._state.exit()",
+            "    def transition(self, new_state: State, use_hist: bool = False):",
+            "        self.state.exit()",
             "        self._state = new_state",
             "        self._history = self._state",
-            "        self._state.entry(use_history)",
+            "        self.state.entry(use_hist)",
             "",
             "",
         ]
@@ -140,12 +145,12 @@ class Generator:
                 self.actions.add(exit)
 
         if is_composite:
-            self.lines.append("    def entry(self, use_history=False):")
+            self.lines.append("    def entry(self, use_hist: bool = False):")
             if entry:
                 self.lines.append(f"        {entry}()")
                 self.lines.append("")
             if has_hist:
-                self.lines.append(f"        if use_history:")
+                self.lines.append(f"        if use_hist:")
                 self.lines.append(f"            self._state = self._history")
                 self.lines.append("        else:")
 
@@ -167,18 +172,22 @@ class Generator:
                     break
 
             self.lines.append("")
-            self.lines.append("        self._state.entry()")
+            self.lines.append("        self.state.entry()")
             self.lines.append("")
+            if exit:
+                self.lines.append("    def exit(self):")
+                self.lines.append("        self.state.exit()")
+                self.lines.append(f"        {exit}()")
+                self.lines.append("")
         else:
             if entry:
                 self.lines.append("    def entry(self):")
                 self.lines.append(f"        {entry}()")
                 self.lines.append("")
-
-        if exit:
-            self.lines.append("    def exit(self):")
-            self.lines.append(f"        {exit}()")
-            self.lines.append("")
+            if exit:
+                self.lines.append("    def exit(self):")
+                self.lines.append(f"        {exit}()")
+                self.lines.append("")
 
     def emit_dispatch(self, state_node, is_composite):
         name = state_node.tag
@@ -213,7 +222,7 @@ class Generator:
 
             dispatch_lines.append(f"        if {condition}:")
             if is_composite:
-                dispatch_lines.append("            self._state.exit()")
+                dispatch_lines.append("            self.state.exit()")
             if target.startswith("history_state_"):
                 dispatch_lines.append(
                     f"            self.context.transition(self.context.{target[14:]}, use_hist=True)"
@@ -228,7 +237,7 @@ class Generator:
             self.lines += dispatch_lines
             if is_composite:
                 self.lines.append("        else:")
-                self.lines.append("            self._state.dispatch(event)")
+                self.lines.append("            self.state.dispatch(event)")
             self.lines.append("")
 
     def emit_state_machine(self):
@@ -255,18 +264,20 @@ class Generator:
                     target = self.tree.children(c.identifier)[0].tag
 
             if source == "[*]":
-                self.lines.append(f"        self._state = self.{target}")
+                self.lines.append(f"        self.state = self.{target}")
                 break
 
-        self.lines.append("        self._state.entry()")
+        self.lines.append("        self.state.entry()")
         self.lines.append("")
         self.lines.append("    def dispatch(self, event: str):")
-        self.lines.append("        self._state.dispatch(event)")
+        self.lines.append("        self.state.dispatch(event)")
         self.lines.append("")
-        self.lines.append("    def transition(self, new_state: State, use_hist: bool = False):")
-        self.lines.append("        self._state.exit()")
-        self.lines.append("        self._state = new_state")
-        self.lines.append("        self._state.entry(use_hist)")
+        self.lines.append(
+            "    def transition(self, new_state: State, use_hist: bool = False):"
+        )
+        self.lines.append("        self.state.exit()")
+        self.lines.append("        self.state = new_state")
+        self.lines.append("        self.state.entry(use_hist)")
         self.lines.append("")
         self.lines.append("")
 

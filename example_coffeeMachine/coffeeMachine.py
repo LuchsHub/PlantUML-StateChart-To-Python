@@ -6,7 +6,7 @@ class State(ABC):
     def __init__(self, context):
         pass
 
-    def entry(self, use_history=False):
+    def entry(self, use_hist: bool = False):
         pass
 
     def exit(self):
@@ -29,16 +29,19 @@ class CompositeState(State):
     # __init__ bleibt abstrakt: konkrete Unterzustände + Startzustand müssen implementiert werden
 
     @abstractmethod
-    def entry(self, use_history=False):
+    def entry(self, use_hist: bool = False):
         pass
 
-    def dispatch(self, event: str):
-        self._state.dispatch(event)
+    def exit(self):
+        self.state.exit()
 
-    def transition(self, new_state: State, use_history=False):
-        self._state.exit()
+    def dispatch(self, event: str):
+        self.state.dispatch(event)
+
+    def transition(self, new_state: State, use_hist: bool = False):
+        self.state.exit()
         self._state = new_state
-        self._state.entry(use_history)
+        self.state.entry(use_hist)
 
 
 class CompositeStateWithHistory(CompositeState):
@@ -48,11 +51,11 @@ class CompositeStateWithHistory(CompositeState):
 
     # __init__ bleibt abstrakt: konkrete Unterzustände + Startzustand müssen implementiert werden
 
-    def transition(self, new_state: State, use_history=False):
-        self._state.exit()
+    def transition(self, new_state: State, use_hist: bool = False):
+        self.state.exit()
         self._state = new_state
         self._history = self._state
-        self._state.entry(use_history)
+        self.state.entry(use_hist)
 
 
 class Aus(SimpleState):
@@ -76,22 +79,26 @@ class An(CompositeStateWithHistory):
 
         self.wasser = 0
 
-    def entry(self, use_history=False):
+    def entry(self, use_hist: bool = False):
         wasserReinigen()
 
-        if use_history:
+        if use_hist:
             self._state = self._history
         else:
             self._state = self.leerlauf
 
-        self._state.entry()
+        self.state.entry(use_hist)
+
+    def exit(self):
+        self.state.exit()
+
+        piepen()
 
     def dispatch(self, event: str):
         if event == "stop":
-            self._state.exit()
             self.context.transition(self.context.pause)
         else:
-            self._state.dispatch(event)
+            self.state.dispatch(event)
 
 
 class Leerlauf(SimpleState):
@@ -117,7 +124,7 @@ class Ausgabe(SimpleState):
 class Pause(SimpleState):
     def dispatch(self, event: str):
         if event == "fortfahren":
-            self.context.transition(self.context.an, use_history=True)
+            self.context.transition(self.context.an, use_hist=True)
 
 
 class StateMachine:
@@ -126,16 +133,16 @@ class StateMachine:
         self.an = An(self)
         self.pause = Pause(self)
 
-        self._state = self.aus
-        self._state.entry()
+        self.state = self.aus
+        self.state.entry()
 
     def dispatch(self, event: str):
-        self._state.dispatch(event)
+        self.state.dispatch(event)
 
-    def transition(self, new_state: State, use_history=False):
-        self._state.exit()
-        self._state = new_state
-        self._state.entry(use_history)
+    def transition(self, new_state: State, use_hist: bool = False):
+        self.state.exit()
+        self.state = new_state
+        self.state.entry(use_hist)
 
 
 def piepen():
@@ -147,16 +154,16 @@ def wasserReinigen():
 
 
 sm = StateMachine()
-print(sm._state.__class__.__name__)  # Aus
+print(sm.state.__class__.__name__)  # Aus
 sm.dispatch("anschalten")
-print(sm._state.__class__.__name__)  # An
-print(sm._state.state.__class__.__name__)  # Unterzustand Leerlauf
+print(sm.state.__class__.__name__)  # An
+print(sm.state.state.__class__.__name__)  # Unterzustand Leerlauf
 sm.dispatch("kaffeeMachen")
-print(sm._state.state.__class__.__name__)  # Unterzustand Leerlauf
+print(sm.state.state.__class__.__name__)  # Unterzustand Leerlauf
 sm.an.wasser = 50  # Wasser auffüllen
 sm.dispatch("kaffeeMachen")
-print(sm._state.state.__class__.__name__)  # Unterzustand Zubereitung
+print(sm.state.state.__class__.__name__)  # Unterzustand Zubereitung
 sm.dispatch("stop")
-print(sm._state.__class__.__name__)  # Pause
+print(sm.state.__class__.__name__)  # Pause
 sm.dispatch("fortfahren")
-print(sm._state.state.__class__.__name__)  # Unterzustand Zubereitung
+print(sm.state.state.__class__.__name__)  # Unterzustand Zubereitung

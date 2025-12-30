@@ -13,6 +13,7 @@ Aus --> An : anschalten
 
 state An {
   An: Entry: wasserReinigen
+  An: Exit: piepen
 
   [*] --> Leerlauf
   Leerlauf --> Leerlauf : wasserAuffüllen
