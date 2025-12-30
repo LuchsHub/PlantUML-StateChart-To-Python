@@ -1,7 +1,6 @@
-from puml_to_ast import Parser
+from treelib.exceptions import NodeIDAbsentError
 
 # TODO: Variablen für Guards
-# TODO: 2. Bedingung für SimpleState-Check (keine Unterzustände)
 
 
 class Generator:
@@ -87,8 +86,11 @@ class Generator:
 
     def emit_state(self, state_node):
         name = state_node.tag
-        is_composite = bool(self.tree.children(f"states_in_{name}"))
-
+        try:
+            is_composite = bool(self.tree.children(f"states_in_{name}"))
+        except NodeIDAbsentError:
+            is_composite = False
+        
         has_hist = False
         if is_composite:
             has_hist = self.uses_history(state_node)
@@ -103,8 +105,8 @@ class Generator:
         self.lines.append("")
 
         # funktioniert noch nicht, Unterzustände haben noch kein states_in_x und transitions_in_x
-        """ if is_composite:
-            self.emit_states(name) """
+        if is_composite:
+            self.emit_states(name)
 
     def emit_states(self, parent):
         states_root = f"states_in_{parent}"
@@ -219,7 +221,7 @@ class Generator:
             event_label = t.tag
             condition = f'event == "{event_label}"'
             if guard:
-                condition += f" and ({guard})"
+                condition += f" and (self.context.{guard})"
 
             dispatch_lines.append(f"        if {condition}:")
             if target.startswith("history_state_"):
@@ -287,14 +289,3 @@ class Generator:
             self.lines.append("")
             self.lines.append("")
 
-
-parser = Parser(file="../example_coffeeMachine/coffeeMachine.puml", warnings=False)
-tree = parser.puml_to_ast()
-root = parser.parent
-
-gen = Generator(tree, root)
-
-code = gen.generate()
-
-with open(f"{root}.py", "w", encoding="utf-8") as f:
-    f.write(code)
