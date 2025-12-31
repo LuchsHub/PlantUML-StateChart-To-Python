@@ -1,0 +1,38 @@
+@startuml
+hide empty description
+
+state Aus
+state An
+state Pause
+
+[*] --> Aus
+
+Aus: Exit: piepen
+
+Aus --> An : anschalten
+
+state An {
+  An: Entry: wasserReinigen
+  An: Exit: piepen
+
+  state Leerlauf {
+    Leerlauf: Entry: asdfaf
+
+    [*] --> Laden
+    Laden --> Spielen : spielen
+    Spielen --> WinScreen : spielBeendet
+  }
+
+  [*] --> Leerlauf
+  Leerlauf --> Leerlauf : wasserAuffüllen
+
+  Leerlauf --> Zubereitung : kaffeeMachen [wasser > 20]
+
+  Zubereitung --> Ausgabe : zubereitungAbschließen
+
+  Ausgabe --> Leerlauf : kaffeeEntnehmen
+}
+
+An --> Pause : stop
+Pause --> An[H] : fortfahren
+@enduml
