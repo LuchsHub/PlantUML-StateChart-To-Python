@@ -102,6 +102,10 @@ class Generator:
         self.emit_init(state_node, is_composite, has_hist)
         self.emit_entry_exit(state_node, is_composite, has_hist)
         self.emit_dispatch(state_node, is_composite)
+
+        if self.lines[-1].startswith("class"):
+            self.lines.append("    pass")
+            self.lines.append("")
         self.lines.append("")
 
         if is_composite:
@@ -225,6 +229,7 @@ class Generator:
         trans_root = f"transitions_in_{grandparent_name}"
 
         dispatch_lines = []
+        first_trans = True
         for t in self.tree.children(trans_root):
             source, target, guard = "", "", ""
 
@@ -241,18 +246,28 @@ class Generator:
 
             event_label = t.tag
             condition = f'event == "{event_label}"'
-            if guard:
-                condition += f" and (self.context.{guard})"
 
-            dispatch_lines.append(f"        if {condition}:")
+            dispatch_lines.append(
+                f"        {'if' if first_trans else 'elif'} {condition}:"
+            )
+            indent = ""
+            if guard:
+                match = re.split(r"\s*(>=|<=|==|!=|>|<)\s*", guard)
+                left, op, right = match
+                dispatch_lines.append(f"            if self.context.{left} {op} {right}:")
+                indent = "    "
             if target.startswith("history_state_"):
                 dispatch_lines.append(
-                    f"            self.context.transition(self.context.{target[14:]}, use_hist=True)"
+                    indent
+                    + f"            self.context.transition(self.context.{target[14:]}, use_hist=True)"
                 )
             else:
                 dispatch_lines.append(
-                    f"            self.context.transition(self.context.{target})"
+                    indent
+                    + f"            self.context.transition(self.context.{target})"
                 )
+
+            first_trans = False
 
         if dispatch_lines:
             self.lines.append("    def dispatch(self, event: str):")
