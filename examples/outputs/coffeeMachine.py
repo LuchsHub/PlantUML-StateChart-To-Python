@@ -26,8 +26,6 @@ class CompositeState(State):
     def state(self) -> State:
         return self._state
 
-    # __init__ bleibt abstrakt: konkrete Unterzustände + Startzustand müssen implementiert werden
-
     @abstractmethod
     def entry(self, use_hist: bool = False):
         pass
@@ -49,8 +47,6 @@ class CompositeStateWithHistory(CompositeState):
     def history(self) -> State:
         return self._history
 
-    # __init__ bleibt abstrakt: konkrete Unterzustände + Startzustand müssen implementiert werden
-
     def transition(self, new_state: State, use_hist: bool = False):
         self.state.exit()
         self._state = new_state
@@ -70,13 +66,11 @@ class Aus(SimpleState):
 class An(CompositeStateWithHistory):
     def __init__(self, context):
         self.context = context
-
         self.leerlauf = Leerlauf(self)
         self.zubereitung = Zubereitung(self)
         self.ausgabe = Ausgabe(self)
         self._state = None
         self._history = None
-
         self.wasser = 0
 
     def entry(self, use_hist: bool = False):
@@ -87,11 +81,10 @@ class An(CompositeStateWithHistory):
         else:
             self._state = self.leerlauf
 
-        self.state.entry(use_hist)
+        self.state.entry()
 
     def exit(self):
         self.state.exit()
-
         piepen()
 
     def dispatch(self, event: str):
@@ -105,8 +98,9 @@ class Leerlauf(SimpleState):
     def dispatch(self, event: str):
         if event == "wasserAuffüllen":
             self.context.transition(self.context.leerlauf)
-        elif event == "kaffeeMachen" and self.context.wasser > 20:
-            self.context.transition(self.context.zubereitung)
+        elif event == "kaffeeMachen":
+            if self.context.wasser > 20:
+                self.context.transition(self.context.zubereitung)
 
 
 class Zubereitung(SimpleState):
@@ -132,7 +126,6 @@ class StateMachine:
         self.aus = Aus(self)
         self.an = An(self)
         self.pause = Pause(self)
-
         self.state = self.aus
         self.state.entry()
 
@@ -151,19 +144,3 @@ def piepen():
 
 def wasserReinigen():
     pass
-
-
-sm = StateMachine()
-print(sm.state.__class__.__name__)  # Aus
-sm.dispatch("anschalten")
-print(sm.state.__class__.__name__)  # An
-print(sm.state.state.__class__.__name__)  # Unterzustand Leerlauf
-sm.dispatch("kaffeeMachen")
-print(sm.state.state.__class__.__name__)  # Unterzustand Leerlauf
-sm.an.wasser = 50  # Wasser auffüllen
-sm.dispatch("kaffeeMachen")
-print(sm.state.state.__class__.__name__)  # Unterzustand Zubereitung
-sm.dispatch("stop")
-print(sm.state.__class__.__name__)  # Pause
-sm.dispatch("fortfahren")
-print(sm.state.state.__class__.__name__)  # Unterzustand Zubereitung
