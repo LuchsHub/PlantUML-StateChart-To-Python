@@ -1,0 +1,48 @@
+graph TD
+    %% Styling
+    classDef root fill:#BBDEFB,stroke:#333,stroke-width:2px;
+    classDef group fill:#eef,stroke:#99f,stroke-width:1px;
+    classDef node fill:#fff,stroke:#333,stroke-width:1px;
+    classDef leaf fill:#eee,stroke:#999,stroke-dasharray: 5 5;
+
+    %% Root Node
+    Root[("coffeemachine")]:::root
+
+    %% Level 1: Main Branches
+    States1["states_in_coffeemachine"]:::group
+    Trans1["transitions_in_coffeemachine"]:::group
+    
+    Root --> States1
+    Root --> Trans1
+
+    %% Level 2: States
+    An["State: 
+    An"]:::node
+    Aus["State: Aus
+    s"]:::node
+    
+    States1 --> An
+    States1 --> Aus
+
+    %% Level 3: Inside 'An' (Hierarchie)
+    Entry["Entry Action:
+    wasserReinigen"]:::leaf
+    History["History Marker"]:::leaf
+    States2["states_in_an"]:::group
+    Trans2["transitions_in_an"]:::group
+
+    An --> Entry
+    An --> History
+    An --> States2
+    An --> Trans2
+
+    %% Level 4: Substates
+    Leerlauf["State: Leerlauf"]:::node
+    Zubereitung["State: Zubereitung"]:::node
+    
+    States2 --> Leerlauf
+    States2 --> Zubereitung
+
+    %% Level 5: Deep Nested
+    Laden["State: Laden"]:::node
+    Leerlauf --> Laden
