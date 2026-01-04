@@ -1,0 +1,13 @@
+@startuml
+hide empty description
+
+state Auf
+state Zu
+state Verriegelt
+
+[*] --> Auf
+Auf --> Zu : schließen
+Zu --> Verriegelt : verriegeln
+Verriegelt --> Zu : entriegeln
+Zu --> Auf : öffnen
+@enduml
