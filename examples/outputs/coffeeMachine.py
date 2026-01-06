@@ -138,10 +138,10 @@ class StateMachine:
         self.state.entry(use_hist)
 
 
-def wasserReinigen():
+def piepen():
     pass
 
 
-def piepen():
+def wasserReinigen():
     pass
 
