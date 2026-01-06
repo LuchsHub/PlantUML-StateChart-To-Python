@@ -12,9 +12,15 @@ def test_coffeemachine():
     state_machine = StateMachine()
     state_machine.dispatch("anschalten")
     print(state_machine.state.state)
-    state_machine.dispatch("wasserAuffüllen") # füllt nix auf, wie soll man hier in den Zustand Zubereitung kommen? 
-    print(state_machine.state.state)
     state_machine.dispatch("kaffeeMachen")
+    print(state_machine.state.state)
+    state_machine.dispatch("stop")
+    print(state_machine.state)
+    state_machine.dispatch("fortfahren")
+    print(state_machine.state.state)
+    state_machine.dispatch("zubereitungAbschließen")
+    print(state_machine.state.state)
+    state_machine.dispatch("kaffeeEntnehmen")
     print(state_machine.state.state)
 
 if __name__ == "__main__":
