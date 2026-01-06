@@ -71,7 +71,7 @@ class An(CompositeStateWithHistory):
         self.ausgabe = Ausgabe(self)
         self._state = None
         self._history = None
-        self.wasser = 0
+        self.wasser = 100
 
     def entry(self, use_hist: bool = False):
         wasserReinigen()

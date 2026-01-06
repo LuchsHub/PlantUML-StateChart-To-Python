@@ -3,7 +3,7 @@ import time
 from parser import Parser
 from generator import Generator
 
-output_dir = "../examples/outputs"
+output_dir = "../examples/outputs/own"
 path_to_input_puml = "../examples/inputs/coffeeMachine.puml"
 
 os.makedirs(output_dir, exist_ok=True) # create output directory if it doesn't exist
