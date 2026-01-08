@@ -45,6 +45,6 @@ Der generierte Code landet dann z. B. in
 
 ## PlantUML-Subset & Details
 
-Das Projekt deckt ein bewusst kleines PlantUML-Subset ab (einfache/composite States, History, Guards, Entry/Exit-Actions etc.). Für tiefergehende Informationen siehe das begleitende Paper „Modellgetriebene Transformation von PlantUML zu Python-Code: Entwicklung eines AST-basierten Generators für komplexe Statecharts“.
+Das Projekt deckt ein bewusst kleines PlantUML-Subset ab, welches aber auch um Funktionen erweitert wurde (siehe [plantuml_subset.md](plantuml_subset.md)). Für tiefergehende Informationen siehe das begleitende Paper „Modellgetriebene Transformation von PlantUML zu Python-Code: Entwicklung eines AST-basierten Generators für komplexe Statecharts".
 
-Weitere Hintergründe und Literaturhinweise findest du in `literature.md`.
+Weitere Hintergründe und Literaturhinweise findest du in [literature.md](literature.md).
