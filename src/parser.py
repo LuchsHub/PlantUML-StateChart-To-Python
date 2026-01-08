@@ -186,6 +186,6 @@ class Parser:
 
 
 if __name__ == "__main__":
-    parser = Parser(warnings=False, file="../examples/inputs/deepCoffeeMachine.puml")
+    parser = Parser(warnings=False, file="../examples/inputs/coffeeMachine.puml")
     parser.puml_to_ast()
     parser.tree.show()
