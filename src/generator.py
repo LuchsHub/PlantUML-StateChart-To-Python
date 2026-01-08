@@ -7,7 +7,6 @@ class Generator:
         self.tree = tree
         self.root = root
         self._actions = set()
-        self._guard_variables = set()
         self.lines = []
 
     def generate(self):
@@ -137,6 +136,7 @@ class Generator:
         if has_hist:
             self.lines.append("        self._history = None")
 
+        guard_variables = set()
         for t in self.tree.children(f"transitions_in_{name}"):
             for c in self.tree.children(t.identifier):
                 if c.tag == "guard":
@@ -144,8 +144,10 @@ class Generator:
                     match = re.split(r"\s*(>=|<=|==|!=|>|<)\s*", guard_code)
                     left, op, right = match
 
-                    if left in self._guard_variables:
+                    if left in guard_variables:
                         continue
+
+                    guard_variables.add(left)
 
                     if re.fullmatch(r"-?\d+", right):
                         value = "0"
@@ -291,6 +293,7 @@ class Generator:
             )
 
         transitions_root = f"transitions_in_{self.root}"
+        guards = set()
         for t in self.tree.children(transitions_root):
             source, target = None, None
 
@@ -299,10 +302,27 @@ class Generator:
                     source = self.tree.children(c.identifier)[0].tag
                 elif c.tag == "goal_state":
                     target = self.tree.children(c.identifier)[0].tag
+                elif c.tag == "guard":
+                    guards.add(self.tree.children(c.identifier)[0].tag)
 
             if source == "[*]":
                 self.lines.append(f"        self.state = self.{target}")
                 break
+
+        for g in guards:
+            match = re.split(r"\s*(>=|<=|==|!=|>|<)\s*", g)
+            left, op, right = match
+
+            if re.fullmatch(r"-?\d+", right):
+                value = "0"
+            elif re.fullmatch(r"-?\d*\.\d+", right):
+                value = "0.0"
+            elif right in ("True", "False"):
+                value = "False"
+            else:
+                value = '""'
+
+            self.lines.append(f"        self.{left} = {value}")
 
         self.lines.append("        self.state.entry()")
         self.lines.append("")
