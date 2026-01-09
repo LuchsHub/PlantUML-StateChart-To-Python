@@ -113,9 +113,11 @@ class Parser:
 
         # set guard
         if len(line) > i + 6:
+            print(i)
+            print(line)
             gu_id = random.random()
             self.tree.create_node("guard", gu_id, t_id)
-            self.tree.create_node("".join(line[7:])[1:-1], random.random(), gu_id)
+            self.tree.create_node("".join(line[i+5:])[1:-1], random.random(), gu_id)
 
     def create_state(self, line, i, parent, braces, data=None, new_node=None):
         parent = parent.split("_")[0]
