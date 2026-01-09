@@ -127,9 +127,6 @@ class Generator:
 
         substates = self.tree.children(f"states_in_{name}")
         for sub in substates:
-            if sub.tag == "[*]":
-                continue
-
             self.lines.append(f"        self.{sub.tag} = {sub.tag.capitalize()}(self)")
 
         self.lines.append("        self._state = None")
@@ -285,9 +282,6 @@ class Generator:
 
         states_root = f"states_in_{self.root}"
         for state_node in self.tree.children(states_root):
-            if state_node.tag == "[*]":
-                continue
-
             self.lines.append(
                 f"        self.{state_node.tag} = {state_node.tag.capitalize()}(self)"
             )
@@ -307,7 +301,6 @@ class Generator:
 
             if source == "[*]":
                 self.lines.append(f"        self.state = self.{target}")
-                break
 
         for g in guards:
             match = re.split(r"\s*(>=|<=|==|!=|>|<)\s*", g)
