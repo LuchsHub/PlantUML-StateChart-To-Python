@@ -15,6 +15,8 @@ parser = Parser(file=path_to_input_puml, warnings=False)
 tree = parser.puml_to_ast()
 root = parser.parent
 
+print(tree.show())
+
 # Generating
 gen = Generator(tree, root)
 code = gen.generate()
